@@ -1,0 +1,26 @@
+1) Wrap code in functions where practical
+2) Split code into logical separate files ala Python main()
+3) Document as you go
+4) Commit to Git !
+
+Functional blocks of code:
+
+Main          - set up and load packages
+              - call functions
+
+Preprocessing - data preparation
+
+Features      - extraction
+              - feature vector construction
+              - dimensionality reduction
+
+Algorithm     - training
+              - testing
+              - parameter tuning
+
+Performance   - evaluation
+              - comparison
+
+Graphics      - plots
+              - tables?
+
