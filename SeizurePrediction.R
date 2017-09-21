@@ -28,17 +28,30 @@ if(length(new.packages)) install.packages(new.packages)
 #Load libraries
 lapply(list.of.packages,function(x){library(x,character.only=TRUE)})
 
+#Set working directory
+setwd('/home/ianw/Epilepsy')
 
-#Loop through all data files
-#Set data folder location
+#Make list of all data files
+#Creates a dataframe with all file details - see ?file.info
+listfiles <- file.info(list.files(path = "./Data", pattern = NULL, all.files = FALSE,
+                                  full.names = FALSE, recursive = FALSE,
+                                  ignore.case = FALSE, include.dirs = FALSE, no.. = FALSE))
 
-#datalocation <- 
+#Extract rowname to get file names
+listfiles <- as.list(rownames(listfiles))
 
-#for (file in datalocation){
-  #Do this
-#}
+#Set working directory for data directory
+setwd('./Data')
 
+#Loop for all files
 
+for (filename in listfiles){
+
+  tryCatch({
+    a <- readMat(filename)
+  }, error=function(e){cat("ERROR :",conditionMessage(e), filename, "\n")})
+  
+}
 
 # from discussion on Kaggle....
 pat <- readMat('\\Data\Dog_1_interictal_segment_0018.mat')
@@ -47,22 +60,3 @@ pat <- readMat('\\Data\Dog_1_interictal_segment_0018.mat')
 df <- data.frame(t(pat[[1]][[1]]))
 names(df) <- unlist(pat[[1]][[4]])
 head(df)
-
-
-#This works
-getwd()
-
-filename = 'Dog_1_interictal_segment_0001.mat'
-library(R.matlab)
-readMat(filename)
-
-#Files are corrupted!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-#Way to check files?
-
-#for file in list open files and write to log?
-#See ACS script for how to run a loop on a folder of files
-
-
-
-
