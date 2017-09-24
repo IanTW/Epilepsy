@@ -1,7 +1,16 @@
+Design
+
 1) Wrap code in functions where practical
 2) Split code into logical separate files ala Python main()
 3) Document as you go
 4) Commit to Git !
+
+
+
+
+***Found the labels for the test data on Kaggle
+https://www.kaggle.com/c/seizure-prediction/discussion/10955
+
 
 Functional blocks of code:
 
@@ -24,20 +33,12 @@ Performance   - evaluation
 Graphics      - plots
               - tables?
 
-Diary entry 21/9 (4.5hours)
-
-Download data and load to cloud
-Validate data files for errors
-Read papers from Kaggle winners
-Install EEGkit R library
-Some thoughts on code structure
-
-Diary entry 22/9 (1 hours)
-Check out various MATLAB and EEGLAB resources
-Downloaded papers on EEG signal processing
-
-
-
 Notes
 
 .mat file is a list of lists
+
+
+To Do
+Refile data files on One Drive in individual folders per patient
+Move test data into One Drive with labels - relabel with labels - ass pain?
+

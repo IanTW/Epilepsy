@@ -7,23 +7,30 @@ filename = "Dog_1_interictal_segment_0476.mat"
 
 # Read in EEG file
 read_one_matfile <- function (filename) {
-	#Set up list
+	# Set up list for EEG data structure
   retval=list()
-  
-	a=readMat(filename)
+  # Read in the .mat file
+  a=readMat(filename)
+  # Data matrix - element 1
 	retval[["mat"]]=a[[1]][[1]]
+	# EEG length - element 2
 	retval[["seconds"]]=as.numeric(a[[1]][[2]])
+	# Sample rate - element 3
 	retval[["freq"]]=as.numeric(a[[1]][[3]])
+	# EEG electrode labels 
 	retval[["labels"]]=unlist(a[[1]][[4]])
+	# EEG sequence number if available or set to -1
 	if (length(a[[1]]) > 4) {
 		retval[["seq"]]=as.numeric(a[[1]][[5]])
 	} else {
 		retval[["seq"]]=-1
 	}
+	#Remove object and garbage collection to reallocate memory
 	rm(a);gc()
 	retval
 }
 
+# Down sampling to reduce data load and normalise features
 down_sampling <- function (data, factor = 1) {
 	if (factor <= 1) {
 		return(data)
@@ -56,6 +63,7 @@ down_sampling <- function (data, factor = 1) {
 	newdata
 }
 
+# Generate features for array?
 gen_features_onearray <- function (indata, pre, freqs) {
 	feats=c()
 	sumheads=c('Min','1stQrt','Med','Mean','3rdQrt','Max')
@@ -96,6 +104,7 @@ gen_features_onearray <- function (indata, pre, freqs) {
 	feats
 }
 
+# Generate feature for series?
 gen_features_oneseries <- function (indata, pre, freqs) {
 	feats=c()
 	indata=as.vector(indata)
@@ -109,6 +118,11 @@ gen_features_oneseries <- function (indata, pre, freqs) {
 	feats
 }
 
+
+#Need to use windowed solution. Some of his code computes an average for entire one hour.
+#This will be useless and can be discarded.
+
+# Generate feature for file?
 gen_features_onefile <- function (indata, f, t) {
 	b=Sys.time()
 	feats=c()
@@ -198,6 +212,8 @@ gen_features_onefile <- function (indata, f, t) {
 	feats
 }
 
+# Split matrix - not sure what this is needed for. For Patient1&2? Those files are much bigger.
+# Used for windowing I think
 split_mat <- function (mymat, nsplit) {
 	if (ncol(mymat) %% nsplit != 0) {
 		stop(paste("In split_mat(), the nsplit",nsplit,"and column number",ncol(mymat),"do not match to even blocks."))
@@ -210,26 +226,46 @@ split_mat <- function (mymat, nsplit) {
 	retdata
 }
 
+#Endode data file names into a numerical annotation
 types=c('Dog_1','Dog_2','Dog_3','Dog_4','Dog_5','Patient_1','Patient_2')
 typenums=c(Dog_1=1,Dog_2=2,Dog_3=3,Dog_4=4,Dog_5=5,Patient_1=6,Patient_2=7)
 
+#Set up logical array with 7000 elements. Why 7000? Are there 1000 files per patient?
+#This would perhaps be the array of results eg 0 = non-seizure 1 = seizure.
+#Set up logical array with 7000 elements
 nv=rep(NA,length(types)*1000)
+#Create results data frame
 summary_df=data.frame(fname=nv, second=nv,freq=nv,ch=nv,label=nv,seq=nv,datalen=nv, time1=nv,time2=nv)
+
+#Redundant
 fixfreq=0
+#Sample freq
 fixfreq=200
+#FFT parameters
+#Base for log calc?
 dolog=1
 addFFT=2
 FFTratio=0.2
+#Windowing split setting
 nsplit=10	# original clip is 10min=600sec, nsplit=10, new length=60sec, nsplit=20, newlength=30sec, nsplit=40 newlength=15sec
 FFTavglen=24
 do_holdout=1
 
+#Set counter
 inum=1
+
+
+#Data files are arranged per folder
+
 for (mytype in types) {
+#Set stopwatch  
 begTime0=Sys.time()
 # datadir=paste0("Data/",mytype)
+#Set path for data files, each patient in its own folder
 datadir=paste0("F:/Work/Kaggle/SeizurePrediction/Data/",mytype)
+#Set holdout directory as sub dir - OMIT NOT USING HOLDOUT DATA
 holdoutdir=paste0(datadir,"_holdout")
+
 
 interfiles=dir(datadir, ".*_interictal_segment_.*.mat")
 prefiles=dir(datadir, ".*_preictal_segment_.*.mat")
