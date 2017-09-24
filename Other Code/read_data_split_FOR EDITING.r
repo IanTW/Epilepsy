@@ -1,17 +1,13 @@
 require(R.matlab)
 
-getwd()
-setwd('./Data')
-filename = "Dog_1_interictal_segment_0476.mat"
-
-
 # Read in EEG file
 read_one_matfile <- function (filename) {
-	# Set up list for EEG data structure
+	# Initiliase list for EEG data structure
   retval=list()
   # Read in the .mat file
   a=readMat(filename)
-  # Data matrix - element 1
+  # Data matrix - element 1 
+  # 16 rows by ~24,000 columns = 16 by (200 x 600) = electrode by (sample rate X length seconds) 
 	retval[["mat"]]=a[[1]][[1]]
 	# EEG length - element 2
 	retval[["seconds"]]=as.numeric(a[[1]][[2]])
@@ -26,26 +22,41 @@ read_one_matfile <- function (filename) {
 		retval[["seq"]]=-1
 	}
 	#Remove object and garbage collection to reallocate memory
-	rm(a);gc()
+	rm(a)
+	gc()
+	#Return retval
 	retval
 }
 
 # Down sampling to reduce data load and normalise features
 down_sampling <- function (data, factor = 1) {
-	if (factor <= 1) {
+	#If freq\fixfreq < 1 then the sample rate is less than the target sample rate
+  #If freq\fixfreq = 1 then the sample rate is the same
+  if (factor <= 1) {
 		return(data)
-	}
-	not_multi=is.null(nrow(data))
+  }
+  
+  # Check the data frame is not empty
+ 	not_multi=is.null(nrow(data))
+	# If TRUE proceed - Resampling based on the total number of ELEMENTS in matrix
+ 	# Suitable for a single electrode ?
 	if (not_multi) {
+	  # Length of data gives the number of elements in the matrix
+	  # This is divided by the factor to REDUCE the number of samples
+	  # Floor rounds this down
 		newlen=floor(length(data)/factor)
 		if (newlen > 1) {
 			newdata=sapply(1:newlen, FUN=function(i, d, f) { mean(d[round((i-1)*f+1):round(i*f)]) },
 				d=data, f=factor)
 		}
+	# Resampling based on the total number of samples per electrode
 	} else {
+	  # Columns of data gives the number of samples per electrode
+	  # This is divided by the factor to REDUCE the number of samples
+	  # Floor rounds this down
 		newlen=floor(ncol(data)/factor)
 		if (newlen > 1) {
-			newdata=sapply(1:newlen,
+			newdata=sapply(1:newlen, #For samples from 1 to new length
 				FUN=function(i, d, f) {
 					col_start=round((i-1)*factor+1);
 					col_end=round(i*factor);
@@ -60,6 +71,7 @@ down_sampling <- function (data, factor = 1) {
 			newdata=data
 		}
 	}
+ 	#Return new data frame
 	newdata
 }
 
@@ -117,10 +129,6 @@ gen_features_oneseries <- function (indata, pre, freqs) {
 	feats=c(feats, gen_features_onearray(delta2, paste0(pre,"Del2"), freqs))
 	feats
 }
-
-
-#Need to use windowed solution. Some of his code computes an average for entire one hour.
-#This will be useless and can be discarded.
 
 # Generate feature for file?
 gen_features_onefile <- function (indata, f, t) {
@@ -212,8 +220,7 @@ gen_features_onefile <- function (indata, f, t) {
 	feats
 }
 
-# Split matrix - not sure what this is needed for. For Patient1&2? Those files are much bigger.
-# Used for windowing I think
+# Windowing function
 split_mat <- function (mymat, nsplit) {
 	if (ncol(mymat) %% nsplit != 0) {
 		stop(paste("In split_mat(), the nsplit",nsplit,"and column number",ncol(mymat),"do not match to even blocks."))
@@ -226,234 +233,241 @@ split_mat <- function (mymat, nsplit) {
 	retdata
 }
 
-#Endode data file names into a numerical annotation
-types=c('Dog_1','Dog_2','Dog_3','Dog_4','Dog_5','Patient_1','Patient_2')
-typenums=c(Dog_1=1,Dog_2=2,Dog_3=3,Dog_4=4,Dog_5=5,Patient_1=6,Patient_2=7)
+# Initialise project variables
+{
+  # Set target sample rate for resampling (Hz)
+  fixfreq=200
+  # Set window size 
+  # nsplit=10	# original clip is 10min=600sec, nsplit=10, new length=60sec, nsplit=20, newlength=30sec, nsplit=40 newlength=15sec
+  
+  # FFT parameters
+  # Base for log calc?
+  #dolog=1
+  #addFFT=2
+  #FFTratio=0.2
+  #FFTavglen=24
+  # Set counter to identify record number 
+  inum=1
 
-#Set up logical array with 7000 elements. Why 7000? Are there 1000 files per patient?
-#This would perhaps be the array of results eg 0 = non-seizure 1 = seizure.
-#Set up logical array with 7000 elements
-nv=rep(NA,length(types)*1000)
-#Create results data frame
-summary_df=data.frame(fname=nv, second=nv,freq=nv,ch=nv,label=nv,seq=nv,datalen=nv, time1=nv,time2=nv)
+  # Endode data file categories into a numerical annotation
+  types=c('Dog_1','Dog_2','Dog_3','Dog_4','Dog_5','Patient_1','Patient_2')
+  typenums=c(Dog_1=1, Dog_2=2, Dog_3=3, Dog_4=4, Dog_5=5, Patient_1=6, Patient_2=7)
+  
+  # Set up logical array with 7000 elements. Why 7000? Are there 1000 files per patient?
+  nv=rep(NA,length(types)*1000)
+  # Create results data frame
+  summary_df=data.frame(fname=nv, second=nv,freq=nv,ch=nv,label=nv,seq=nv,datalen=nv, time1=nv,time2=nv)
+}
 
-#Redundant
-fixfreq=0
-#Sample freq
-fixfreq=200
-#FFT parameters
-#Base for log calc?
-dolog=1
-addFFT=2
-FFTratio=0.2
-#Windowing split setting
-nsplit=10	# original clip is 10min=600sec, nsplit=10, new length=60sec, nsplit=20, newlength=30sec, nsplit=40 newlength=15sec
-FFTavglen=24
-do_holdout=1
-
-#Set counter
-inum=1
-
-
-#Data files are arranged per folder
-
+# Main code sequence
+# Loop for each patient
 for (mytype in types) {
-#Set stopwatch  
-begTime0=Sys.time()
-# datadir=paste0("Data/",mytype)
-#Set path for data files, each patient in its own folder
-datadir=paste0("F:/Work/Kaggle/SeizurePrediction/Data/",mytype)
-#Set holdout directory as sub dir - OMIT NOT USING HOLDOUT DATA
-holdoutdir=paste0(datadir,"_holdout")
+  # Set timer for ??  Overwritten in the following loops. redundant??? 
+  #begTime0=Sys.time()
+  # Set path for data files, each patient in its own folder
+  datadir=paste0("C:/Users/ian_wa/Documents/Epilepsy/Data/",mytype)
 
+  # Get list of interictal files
+  interfiles=dir(datadir, ".*_interictal_segment_.*.mat")
+  # Get list of preictal files
+  prefiles=dir(datadir, ".*_preictal_segment_.*.mat")
 
-interfiles=dir(datadir, ".*_interictal_segment_.*.mat")
-prefiles=dir(datadir, ".*_preictal_segment_.*.mat")
-testfiles=dir(datadir, ".*_test_segment_.*.mat")
-if (mytype %in% c("Dog_1","Dog_2","Dog_3","Dog_4") && do_holdout) {
-    holdoutfiles=dir(holdoutdir, ".*_holdout_segment_.*.mat")
-}
+  # Initialise object for training data
+  trainmat=NULL
+  # Set timer for ??
+  begTime=Sys.time()
+  # Set counter for ??
+  isub=1
+  
+  # Loop for all interictal files
+  for (myfile in interfiles) {
+    # Set timer for ??
+  	begTime0=Sys.time()
+  	# Get filename
+  	filename=paste0(datadir,"/",myfile)
+  	# Read in .mat file
+  	retval=read_one_matfile(filename)
+  	# Save the electrode data component 
+  	orimat=retval[["mat"]]
+  	# Get length of clip
+  	seconds=retval[["seconds"]]
+  	# Get sample frequency
+  	freq=retval[["freq"]]
+  	# Get electrode labels
+  	labels=retval[["labels"]]
+  	# Get sequence number
+  	seq=retval[["seq"]]
+  	
+  	# If sampling frequency is less than new sample rate then downsample 
+  	# Factor is Q/P or Fs/Ftarget
+  	if (fixfreq > 0 && fixfreq < freq) {
+  		xmat=down_sampling(orimat, freq/fixfreq)
+  		freq=fixfreq
+  	}
 
-trainmat=NULL
-begTime=Sys.time()
-isub=1
-for (myfile in interfiles) {
-	begTime0=Sys.time()
-	filename=paste0(datadir,"/",myfile)
-	retval=read_one_matfile(filename)
-	orimat=retval[["mat"]]
-	seconds=retval[["seconds"]]
-	freq=retval[["freq"]]
-	labels=retval[["labels"]]
-	seq=retval[["seq"]]
-	if (fixfreq > 0 && fixfreq < freq) {
-		orimat=down_sampling(orimat, freq/fixfreq)
-		freq=fixfreq
-	}
-	newmats=split_mat(orimat, nsplit)
-	for (mi in 1:nsplit) {
-		mymat=newmats[[mi]]
-		f=gen_features_onefile(mymat, freq, seconds/nsplit)
-		f['seq']=seq
-		f['flag']=0
-		f['id']=typenums[mytype]*100000+isub*100+mi
-		f['si']=mi
-		if(is.null(trainmat)) {
-			trainmat=f
-		} else {
-			trainmat=rbind(trainmat, f)
-		}
-	}
-	endTime=Sys.time()
-	time1=difftime(endTime, begTime0, units="secs")
-	time2=difftime(endTime, begTime, units="secs")
-	cat(paste(inum, myfile,retval[["seconds"]],retval[["freq"]],length(retval[["labels"]]),
-		retval[["labels"]][1], retval[["seq"]],ncol(orimat), time1, time2,"\n"))
-	summary_df[inum,]=c(myfile,retval[["seconds"]],retval[["freq"]],length(retval[["labels"]]),
-				retval[["labels"]][1], retval[["seq"]],ncol(orimat), time1, time2)
-	inum=inum+1
-	isub=isub+1
-	flush.console()
-}
-
-for (myfile in prefiles) {
-	begTime0=Sys.time()
-	filename=paste0(datadir,"/",myfile)
-	retval=read_one_matfile(filename)
-	orimat=retval[["mat"]]
-	seconds=retval[["seconds"]]
-	freq=retval[["freq"]]
-	labels=retval[["labels"]]
-	seq=retval[["seq"]]
-	if (fixfreq > 0 && fixfreq < freq) {
-		orimat=down_sampling(orimat, freq/fixfreq)
-		freq=fixfreq
-	}
-	newmats=split_mat(orimat, nsplit)
-	for (mi in 1:nsplit) {
-		mymat=newmats[[mi]]
-		f=gen_features_onefile(mymat, freq, seconds/nsplit)
-		f['seq']=seq
-		f['flag']=1
-		f['id']=typenums[mytype]*100000+isub*100+mi
-		f['si']=mi
-		if(is.null(trainmat)) {
-			trainmat=f
-		} else {
-			trainmat=rbind(trainmat, f)
-		}
-	}
-	endTime=Sys.time()
-	time1=difftime(endTime, begTime0, units="secs")
-	time2=difftime(endTime, begTime, units="secs")
-	cat(paste(inum, myfile,retval[["seconds"]],retval[["freq"]],length(retval[["labels"]]),retval[["labels"]][1],
-			retval[["seq"]],ncol(orimat),time1, time2,"\n"))
-	summary_df[inum,]=c(myfile,retval[["seconds"]],retval[["freq"]],length(retval[["labels"]]),
-				retval[["labels"]][1], retval[["seq"]],ncol(orimat),time1, time2)
-	inum=inum+1
-	isub=isub+1
-	flush.console()
-}
-
-testmat=NULL
-for (myfile in testfiles) {
-	begTime0=Sys.time()
-	filename=paste0(datadir,"/",myfile)
-	retval=read_one_matfile(filename)
-	orimat=retval[["mat"]]
-	seconds=retval[["seconds"]]
-	freq=retval[["freq"]]
-	labels=retval[["labels"]]
-	seq=retval[["seq"]]
-	if (fixfreq > 0 && fixfreq < freq) {
-		orimat=down_sampling(orimat, freq/fixfreq)
-		freq=fixfreq
-	}
-	newmats=split_mat(orimat, nsplit)
-	for (mi in 1:nsplit) {
-		mymat=newmats[[mi]]
-		f=gen_features_onefile(mymat, freq, seconds/nsplit)
-		f['id']=typenums[mytype]*100000+isub*100+mi
-		f['si']=mi
-		if(is.null(testmat)) {
-			testmat=f
-		} else {
-			testmat=rbind(testmat, f)
-		}
-	}
-	endTime=Sys.time()
-	time1=difftime(endTime, begTime0, units="secs")
-	time2=difftime(endTime, begTime, units="secs")
-	cat(paste(inum, myfile,retval[["seconds"]],retval[["freq"]],length(retval[["labels"]]),retval[["labels"]][1],
-		retval[["seq"]],ncol(orimat),time1, time2,"\n"))
-	summary_df[inum,]=c(myfile,retval[["seconds"]],retval[["freq"]],length(retval[["labels"]]),
-				retval[["labels"]][1], retval[["seq"]],ncol(orimat),time1, time2)
-	inum=inum+1
-	isub=isub+1
-	flush.console()
-}
-
-if (mytype %in% c("Dog_1","Dog_2","Dog_3","Dog_4") && do_holdout) {
-holdoutmat=NULL
-for (myfile in holdoutfiles) {
-	begTime0=Sys.time()
-	filename=paste0(holdoutdir,"/",myfile)
-	retval=read_one_matfile(filename)
-	orimat=retval[["mat"]]
-	seconds=retval[["seconds"]]
-	freq=retval[["freq"]]
-	labels=retval[["labels"]]
-	seq=retval[["seq"]]
-	if (fixfreq > 0 && fixfreq < freq) {
-		orimat=down_sampling(orimat, freq/fixfreq)
-		freq=fixfreq
-	}
-	newmats=split_mat(orimat, nsplit)
-	for (mi in 1:nsplit) {
-		mymat=newmats[[mi]]
-		f=gen_features_onefile(mymat, freq, seconds/nsplit)
-		f['id']=typenums[mytype]*100000+isub*100+mi
-		f['si']=mi
-		if(is.null(holdoutmat)) {
-			holdoutmat=f
-		} else {
-			holdoutmat=rbind(holdoutmat, f)
-		}
-	}
-	endTime=Sys.time()
-	time1=difftime(endTime, begTime0, units="secs")
-	time2=difftime(endTime, begTime, units="secs")
-	cat(paste(inum, myfile,retval[["seconds"]],retval[["freq"]],length(retval[["labels"]]),retval[["labels"]][1],
-		retval[["seq"]],ncol(orimat),time1, time2,"\n"))
-	summary_df[inum,]=c(myfile,retval[["seconds"]],retval[["freq"]],length(retval[["labels"]]),
-				retval[["labels"]][1], retval[["seq"]],ncol(orimat),time1, time2)
-	inum=inum+1
-	isub=isub+1
-	flush.console()
-}
-}
-# datadir=paste0("Data/",mytype)
-datadir=paste0("F:/Work/Kaggle/SeizurePrediction/Kaggle-SeizureDetection-Official/Data/",mytype)
-if (addFFT>=1) {
-	freq=paste0(freq,"FFT",addFFT,"-",FFTratio)
-}
-filename=paste0(datadir,"/",mytype,"Split",nsplit,"_Freq",freq,ifelse(dolog==1,paste0("Log",dolog),""),".RData")
-summary_df=summary_df[!is.na(summary_df$fname),]
-if (mytype %in% c("Dog_1","Dog_2","Dog_3","Dog_4") && do_holdout) {
-    save(trainmat, testmat, holdoutmat, summary_df, file=filename, compress='bzip2')
-} else {
-    save(trainmat, testmat, summary_df, file=filename, compress='bzip2')
-}
-endTime=Sys.time()
-cat(paste("Total time used for",mytype,":",format(endTime-begTime0),"\n"))
-cat(paste("File saved:",filename,"\n"))
-flush.console()
-}
+  	newmats=split_mat(orimat, nsplit)
+  	for (mi in 1:nsplit) {
+  		mymat=newmats[[mi]]
+  		f=gen_features_onefile(mymat, freq, seconds/nsplit)
+  		f['seq']=seq
+  		f['flag']=0
+  		f['id']=typenums[mytype]*100000+isub*100+mi
+  		f['si']=mi
+  		if(is.null(trainmat)) {
+  			trainmat=f
+  		} else {
+  			trainmat=rbind(trainmat, f)
+  		}
+  	}
+  	endTime=Sys.time()
+  	time1=difftime(endTime, begTime0, units="secs")
+  	time2=difftime(endTime, begTime, units="secs")
+  	cat(paste(inum, myfile,retval[["seconds"]],retval[["freq"]],length(retval[["labels"]]),
+  		retval[["labels"]][1], retval[["seq"]],ncol(orimat), time1, time2,"\n"))
+  	summary_df[inum,]=c(myfile,retval[["seconds"]],retval[["freq"]],length(retval[["labels"]]),
+  				retval[["labels"]][1], retval[["seq"]],ncol(orimat), time1, time2)
+  	inum=inum+1
+  	isub=isub+1
+  	flush.console()
+  }
+  
+  for (myfile in prefiles) {
+  	begTime0=Sys.time()
+  	filename=paste0(datadir,"/",myfile)
+  	retval=read_one_matfile(filename)
+  	orimat=retval[["mat"]]
+  	seconds=retval[["seconds"]]
+  	freq=retval[["freq"]]
+  	labels=retval[["labels"]]
+  	seq=retval[["seq"]]
+  	if (fixfreq > 0 && fixfreq < freq) {
+  		orimat=down_sampling(orimat, freq/fixfreq)
+  		freq=fixfreq
+  	}
+  	newmats=split_mat(orimat, nsplit)
+  	for (mi in 1:nsplit) {
+  		mymat=newmats[[mi]]
+  		f=gen_features_onefile(mymat, freq, seconds/nsplit)
+  		f['seq']=seq
+  		f['flag']=1
+  		f['id']=typenums[mytype]*100000+isub*100+mi
+  		f['si']=mi
+  		if(is.null(trainmat)) {
+  			trainmat=f
+  		} else {
+  			trainmat=rbind(trainmat, f)
+  		}
+  	}
+  	endTime=Sys.time()
+  	time1=difftime(endTime, begTime0, units="secs")
+  	time2=difftime(endTime, begTime, units="secs")
+  	cat(paste(inum, myfile,retval[["seconds"]],retval[["freq"]],length(retval[["labels"]]),retval[["labels"]][1],
+  			retval[["seq"]],ncol(orimat),time1, time2,"\n"))
+  	summary_df[inum,]=c(myfile,retval[["seconds"]],retval[["freq"]],length(retval[["labels"]]),
+  				retval[["labels"]][1], retval[["seq"]],ncol(orimat),time1, time2)
+  	inum=inum+1
+  	isub=isub+1
+  	flush.console()
+  }
+  
+  testmat=NULL
+  for (myfile in testfiles) {
+  	begTime0=Sys.time()
+  	filename=paste0(datadir,"/",myfile)
+  	retval=read_one_matfile(filename)
+  	orimat=retval[["mat"]]
+  	seconds=retval[["seconds"]]
+  	freq=retval[["freq"]]
+  	labels=retval[["labels"]]
+  	seq=retval[["seq"]]
+  	if (fixfreq > 0 && fixfreq < freq) {
+  		orimat=down_sampling(orimat, freq/fixfreq)
+  		freq=fixfreq
+  	}
+  	newmats=split_mat(orimat, nsplit)
+  	for (mi in 1:nsplit) {
+  		mymat=newmats[[mi]]
+  		f=gen_features_onefile(mymat, freq, seconds/nsplit)
+  		f['id']=typenums[mytype]*100000+isub*100+mi
+  		f['si']=mi
+  		if(is.null(testmat)) {
+  			testmat=f
+  		} else {
+  			testmat=rbind(testmat, f)
+  		}
+  	}
+  	endTime=Sys.time()
+  	time1=difftime(endTime, begTime0, units="secs")
+  	time2=difftime(endTime, begTime, units="secs")
+  	cat(paste(inum, myfile,retval[["seconds"]],retval[["freq"]],length(retval[["labels"]]),retval[["labels"]][1],
+  		retval[["seq"]],ncol(orimat),time1, time2,"\n"))
+  	summary_df[inum,]=c(myfile,retval[["seconds"]],retval[["freq"]],length(retval[["labels"]]),
+  				retval[["labels"]][1], retval[["seq"]],ncol(orimat),time1, time2)
+  	inum=inum+1
+  	isub=isub+1
+  	flush.console()
+  }
+  
+  if (mytype %in% c("Dog_1","Dog_2","Dog_3","Dog_4") && do_holdout) {
+  holdoutmat=NULL
+  for (myfile in holdoutfiles) {
+  	begTime0=Sys.time()
+  	filename=paste0(holdoutdir,"/",myfile)
+  	retval=read_one_matfile(filename)
+  	orimat=retval[["mat"]]
+  	seconds=retval[["seconds"]]
+  	freq=retval[["freq"]]
+  	labels=retval[["labels"]]
+  	seq=retval[["seq"]]
+  	if (fixfreq > 0 && fixfreq < freq) {
+  		orimat=down_sampling(orimat, freq/fixfreq)
+  		freq=fixfreq
+  	}
+  	newmats=split_mat(orimat, nsplit)
+  	for (mi in 1:nsplit) {
+  		mymat=newmats[[mi]]
+  		f=gen_features_onefile(mymat, freq, seconds/nsplit)
+  		f['id']=typenums[mytype]*100000+isub*100+mi
+  		f['si']=mi
+  		if(is.null(holdoutmat)) {
+  			holdoutmat=f
+  		} else {
+  			holdoutmat=rbind(holdoutmat, f)
+  		}
+  	}
+  	endTime=Sys.time()
+  	time1=difftime(endTime, begTime0, units="secs")
+  	time2=difftime(endTime, begTime, units="secs")
+  	cat(paste(inum, myfile,retval[["seconds"]],retval[["freq"]],length(retval[["labels"]]),retval[["labels"]][1],
+  		retval[["seq"]],ncol(orimat),time1, time2,"\n"))
+  	summary_df[inum,]=c(myfile,retval[["seconds"]],retval[["freq"]],length(retval[["labels"]]),
+  				retval[["labels"]][1], retval[["seq"]],ncol(orimat),time1, time2)
+  	inum=inum+1
+  	isub=isub+1
+  	flush.console()
+  }
+  }
+  # datadir=paste0("Data/",mytype)
+  datadir=paste0("F:/Work/Kaggle/SeizurePrediction/Kaggle-SeizureDetection-Official/Data/",mytype)
+  if (addFFT>=1) {
+  	freq=paste0(freq,"FFT",addFFT,"-",FFTratio)
+  }
+  filename=paste0(datadir,"/",mytype,"Split",nsplit,"_Freq",freq,ifelse(dolog==1,paste0("Log",dolog),""),".RData")
+  summary_df=summary_df[!is.na(summary_df$fname),]
+  if (mytype %in% c("Dog_1","Dog_2","Dog_3","Dog_4") && do_holdout) {
+      save(trainmat, testmat, holdoutmat, summary_df, file=filename, compress='bzip2')
+  } else {
+      save(trainmat, testmat, summary_df, file=filename, compress='bzip2')
+  }
+  endTime=Sys.time()
+  cat(paste("Total time used for",mytype,":",format(endTime-begTime0),"\n"))
+  cat(paste("File saved:",filename,"\n"))
+  flush.console()
+  }
 
 summary_df=summary_df[!is.na(summary_df$fname),]
 
 totaltime=(Sys.time()-begTime)
 print(tail(summary_df, n=20))
 print(totaltime)
-
 
