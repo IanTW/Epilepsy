@@ -1,7 +1,38 @@
+# Data is from the Kaggle Epileptic Seizure Prediction Competion 2014. 
+# A large number of EEG data files are labelled as test segments.These files were 
+# to be used for testing and to derive a private score in the competition. For the
+# purposes of this study, the test segments will be included with the training segments
+# to increase the size of the data set. All test files are anonymised and labelled as
+# "*_test_segment.mat". The data labels were provided by the competition host once the 
+# competion had closed. The data labels are contained in SzPrediction_answer_key.csv 
+# which is available from https://www.kaggle.com/c/seizure-prediction/discussion/10955
+
+# Data files are nested according to patient. Preictal and interictal segments are filed 
+# under their relevant folder. Test segments are filed in a sub-folder ./Test_Data
+#
+# ./Data/Dog_1/Test_Data
+#    |     |        |--Dog_1_test_segment_0001.mat
+#    |     |        |--etc.
+#    |     |
+#    |     |--Dog_1_interictal_segment_0001.mat
+#    |     |--etc.
+#    |
+#    |-- /Dog_2/Test_Data
+#    |-- /Dog_3/Test_Data
+#    |-- /Dog_4/Test_Data
+#    |-- /Dog_5/Test_Data
+#    |-- /Patient_1/Test_Data
+#    |-- /Patient_2/Test_Data
+#
+# The csv file with the labels is easily filtered for the preictal segments and a string
+# is formed that is easily cut and paste to form a list of preictal files. See code that
+# follows hereafter. Once completed the relabelled files can be included
+# with the other patient files and the Test_Data folder removed.
+
+# Used for validating the files
 require (R.matlab)
 
-
-#List of files that are preictal
+# List of files that are preictal (from the csv with labels)
 preictfiles <- c("Dog_1_test_segment_0021.mat",
                        "Dog_1_test_segment_0031.mat",
                        "Dog_1_test_segment_0044.mat",
@@ -252,36 +283,40 @@ preictfiles <- c("Dog_1_test_segment_0021.mat",
                        "Patient_2_test_segment_0094.mat",
                        "Patient_2_test_segment_0110.mat",
                        "Patient_2_test_segment_0117.mat",
-                       "Patient_2_test_segment_0124.mat",
-                       "Dog_Z_preictal_segment_2000.mat")
-
+                       "Patient_2_test_segment_0124.mat")
+# Make into list object
 preictfiles <- as.list(preictfiles)
 
+# Set options for navigating folder structure
 types=c('Dog_1','Dog_2','Dog_3','Dog_4','Dog_5','Patient_1','Patient_2')
 
-#Rename files as preictal
-for (patients in types){   
-
-        datadir=paste0("C:/Users/ian_wa.IMAGINE/Downloads/New Data/",mytype,"/Test Data")
+# Loop for all patient folder 
+for (mytype in types){   
+        
+        # Set working directory here
+        datadir=paste0("C:/Users/ian_wa.IMAGINE/Downloads/New Data/",mytype,"/Test_Data")
         setwd(datadir)
      
-        #Tag any files that are listed as preictal
+        # Prefix any files that are listed as preictal, based on the list provided 
         for (myfiles in preictfiles){
           file.rename(myfiles, paste0("Preict_",myfiles))
           }
 
-        #Get files with Preict prefix
-        myfilelist=dir(datadir, "*.mat")
+        # Get files with Preict prefix
+        myfilelist=list.files(datadir, pattern="[P][r]")
+        # Files are labelled as preictal with an index of 2000 and up
+        # Calculate the number of files
         numfile <- length(myfilelist) + 1999
-        #Rename as preictal
-        file.rename(list.files(pattern="*.mat"), paste0(mytype,"_preictal_segment_", 2000:numfile,".mat"))
+        # Rename as preictal (to and from in rename must match)
+        file.rename(myfilelist, paste0(mytype,"_preictal_segment_", 2000:numfile,".mat"))
         
-        #Get files without Preict prefix
-        myfilelist=dir(datadir, "*.mat")
+        # Get all other files and label interictal
+        myfilelist=list.files(datadir, pattern="[t][e][s]")
+        # Files are labelled as interictal with an index of 2000 and up
+        # Calculate the number of files
         numfile <- length(myfilelist) + 1999
-        #Rename as interictal
-        file.rename(list.files(pattern="*.mat"), paste0(mytype,"_preictal_segment_", 2000:numfile,".mat"))
-        
+        # Rename as interictal (to and from in rename must match)
+        file.rename(myfilelist, paste0(mytype,"_interictal_segment_", 2000:numfile,".mat"))
 }
 
 
