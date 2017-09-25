@@ -1,5 +1,8 @@
+require (R.matlab)
+
+
 #List of files that are preictal
-preictfiles <- as.list("Dog_1_test_segment_0021.mat",
+preictfiles <- c("Dog_1_test_segment_0021.mat",
                        "Dog_1_test_segment_0031.mat",
                        "Dog_1_test_segment_0044.mat",
                        "Dog_1_test_segment_0048.mat",
@@ -249,11 +252,50 @@ preictfiles <- as.list("Dog_1_test_segment_0021.mat",
                        "Patient_2_test_segment_0094.mat",
                        "Patient_2_test_segment_0110.mat",
                        "Patient_2_test_segment_0117.mat",
-                       "Patient_2_test_segment_0124.mat")
+                       "Patient_2_test_segment_0124.mat",
+                       "Dog_Z_preictal_segment_2000.mat")
 
-makedir <- ""
+preictfiles <- as.list(preictfiles)
 
-if (filename %in% filelist)
-{
-  
+types=c('Dog_1','Dog_2','Dog_3','Dog_4','Dog_5','Patient_1','Patient_2')
+
+#Rename files as preictal
+for (patients in types){   
+
+        datadir=paste0("C:/Users/ian_wa.IMAGINE/Downloads/New Data/",mytype,"/Test Data")
+        setwd(datadir)
+     
+        #Tag any files that are listed as preictal
+        for (myfiles in preictfiles){
+          file.rename(myfiles, paste0("Preict_",myfiles))
+          }
+
+        #Get files with Preict prefix
+        myfilelist=dir(datadir, "*.mat")
+        numfile <- length(myfilelist) + 1999
+        #Rename as preictal
+        file.rename(list.files(pattern="*.mat"), paste0(mytype,"_preictal_segment_", 2000:numfile,".mat"))
+        
+        #Get files without Preict prefix
+        myfilelist=dir(datadir, "*.mat")
+        numfile <- length(myfilelist) + 1999
+        #Rename as interictal
+        file.rename(list.files(pattern="*.mat"), paste0(mytype,"_preictal_segment_", 2000:numfile,".mat"))
+        
+}
+
+
+
+
+
+#Error checking
+for (patients in types){  
+
+
+myfilelist=dir(datadir, "*.mat")
+
+for (filename in listfiles){
+  tryCatch({
+    a <- readMat(filename)
+  }, error=function(e){cat("ERROR :",conditionMessage(e), filename, "\n")})
 }
