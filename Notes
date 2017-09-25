@@ -1,0 +1,54 @@
+Design
+
+1) Wrap code in functions where practical
+2) Split code into logical separate files ala Python main()
+3) Document as you go
+4) Commit to Git !
+
+
+
+
+***Found the labels for the test data on Kaggle
+https://www.kaggle.com/c/seizure-prediction/discussion/10955
+
+
+Functional blocks of code:
+
+Main          - set up and load packages
+              - call functions
+
+Preprocessing - data preparation
+
+Features      - extraction
+              - feature vector construction
+              - dimensionality reduction
+
+Algorithm     - training
+              - testing
+              - parameter tuning
+
+Performance   - evaluation
+              - comparison
+
+Graphics      - plots
+              - tables?
+
+Notes
+
+.mat file is a list of lists
+
+Not clear if resampling is necessary. Patient_1 and Patient_2 data has higher sample rate (I believe). This can be a part of the different studies that are undertaken - variations on sample rate as part of data preparation to see if different results are obtained. Also vary window size of data.
+
+Wei Wu code has feature generation that does not use windowing - identify and remove
+
+
+To Do
+Print detailed project plan and platicise
+Put milestones into Google calendar
+Decide on a train/test/holdout split
+Refile data files on One Drive in individual folders per patient
+Move test data into One Drive with labels - relabel with labels - ass pain?
+Figure out how to plot EEG. EEGkit may only work on a EDF. Matt Craddock new library
+is not on CRAN and only has install instructions for Bash.
+
+
