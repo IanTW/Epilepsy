@@ -5,9 +5,6 @@ Design
 3) Document as you go
 4) Commit to Git !
 
-
-
-
 ***Found the labels for the test data on Kaggle
 https://www.kaggle.com/c/seizure-prediction/discussion/10955
 
@@ -15,11 +12,14 @@ https://www.kaggle.com/c/seizure-prediction/discussion/10955
 Functional blocks of code:
 
 Main          - set up and load packages
-              - call functions
+              - main code sequence
 
 Preprocessing - data preparation
+              - data error checking
+              - data metadata/summary
 
-Features      - extraction
+Features      - generate
+              - extraction
               - feature vector construction
               - dimensionality reduction
 
@@ -47,7 +47,6 @@ Print detailed project plan and platicise
 Put milestones into Google calendar
 Decide on a train/test/holdout split
 Refile data files on One Drive in individual folders per patient
-Move test data into One Drive with labels - relabel with labels - ass pain?
 Figure out how to plot EEG. EEGkit may only work on a EDF. Matt Craddock new library
 is not on CRAN and only has install instructions for Bash.
 
