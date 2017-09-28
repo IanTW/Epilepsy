@@ -29,8 +29,6 @@
 # follows hereafter. Once completed the relabelled files can be included
 # with the other patient files and the Test_Data folder removed.
 
-# Used for validating the files
-require (R.matlab)
 
 # List of files that are preictal (from the csv with labels)
 preictfiles <- c("Dog_1_test_segment_0021.mat",
@@ -317,20 +315,4 @@ for (mytype in types){
         numfile <- length(myfilelist) + 1999
         # Rename as interictal (to and from in rename must match)
         file.rename(myfilelist, paste0(mytype,"_interictal_segment_", 2000:numfile,".mat"))
-}
-
-
-
-
-
-#Error checking
-for (patients in types){  
-
-
-myfilelist=dir(datadir, "*.mat")
-
-for (filename in listfiles){
-  tryCatch({
-    a <- readMat(filename)
-  }, error=function(e){cat("ERROR :",conditionMessage(e), filename, "\n")})
 }
