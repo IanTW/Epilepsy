@@ -1,4 +1,4 @@
-Design
+Design Rules
 
 1) Wrap code in functions where practical
 2) Split code into logical separate files ala Python main()
@@ -11,14 +11,13 @@ https://www.kaggle.com/c/seizure-prediction/discussion/10955
 
 Functional blocks of code:
 
-Main          - set up and load packages
-              - main code sequence
+Main          - main code sequence                     - SeizurePrediction.R        - in progress
 
-Preprocessing - data preparation
-              - data error checking
-              - data metadata/summary
+Preprocessing - data preparation                       - RenameTestData.R
+              - data error checking                    - ??????????????             - in testing
+              - data metadata/summary                  - GetMetaData.R              - in development
 
-Features      - generate
+Features      - generate                                
               - extraction
               - feature vector construction
               - dimensionality reduction
@@ -49,5 +48,11 @@ Decide on a train/test/holdout split
 Refile data files on One Drive in individual folders per patient
 Figure out how to plot EEG. EEGkit may only work on a EDF. Matt Craddock new library
 is not on CRAN and only has install instructions for Bash.
+Set up weekly update template in ppt.
+Investigate R signal processing packages
+Read through Kaggle discussions for R coding ideas
 
+Monday - 1 hour on coding - data integrity checking
+Wednesday - 3 hours on LaTeX and set-up
+Wednesday - 1.5 hours on integrity checking data
 
