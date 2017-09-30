@@ -1,135 +1,146 @@
-##############################################################################################
-# File Name: GetMetaData.R                                                                   #
-# Purpose: Contains code for summarising metadata from EEG data files                        #
-#                                                                                            #
-# Author: Ian Watson                                                                         #
-# Email1: d13128934@mydit.ie                                                                 #
-# Email2: iantwatson@gmail.com                                                               #
-#                                                                                            #
-# Institution: Dublin Institute of Technology                                                #
-# Course Code: DT228B                                                                        #
-# Course Title: MSc. Data Analytics                                                          # 
-# Date of Dissertation Commencement: September 2017                                          #
-# Title: A Comparison of SVM and Neural Network Classifiers for Epileptic Seizure Prediction #
-#                                                                                            #
-# R code for implementing a machine learning classification experiment to compare the        #
-# performance of SVM and neural network classifiers used for epileptic seizure prediction    #
-#                                                                                            #
-# Parts of code adapted from Wei Wu & ESAI, Universidad CEU Cardenal Herrera,                #
-# (F. Zamora-Martínez,    #F. Muñoz-Malmaraz, P. Botella-Rocamora, J. Pardo).                # 
-#                                                                                            #
-##############################################################################################
-# Copyright (c) 2014, Wei Wu                                                                 #
-#                                                                                            #
-# Permission is hereby granted, free of charge, to any person obtaining a copy               #
-# of this software and associated documentation files (the "Software"), to deal              #
-# in the Software without restriction, including without limitation the rights               #
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell                  #
-# copies of the Software, and to permit persons to whom the Software is                      #
-# furnished to do so, subject to the following conditions:                                   #
-#                                                                                            #
-# The above copyright notice and this permission notice shall be included in all             #
-# copies or substantial portions of the Software.                                            #
-#                                                                                            #
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR                 #
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,                   #
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE                #
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER                     #
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,              #
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS                     #
-# IN THE SOFTWARE.                                                                           #
-#                                                                                            # 
-# See: https://github.com/wei-wu-nyc/Kaggle-SeizureDetection-Official                        #
-#                                                                                            #
-##############################################################################################
-# Copyright (c) 2014, ESAI, Universidad CEU Cardenal Herrera,                                #
-# (F. Zamora-Martínez, F. Muñoz-Malmaraz, P. Botella-Rocamora, J. Pardo)                     #
-#                                                                                            #
-# Permission is hereby granted, free of charge, to any person obtaining a copy               #
-# of this software and associated documentation files (the "Software"), to deal              #
-# in the Software without restriction, including without limitation the rights               #
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell                  #
-# copies of the Software, and to permit persons to whom the Software is                      #
-# furnished to do so, subject to the following conditions:                                   #
-#                                                                                            #
-# The above copyright notice and this permission notice shall be included in all             #
-# copies or substantial portions of the Software.                                            #
-#                                                                                            #
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR                 #
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,                   #
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE                #
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER                     #
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,              #
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS                     #
-# IN THE SOFTWARE.                                                                           #
-#                                                                                            # 
-# See https://github.com/ESAI-CEU-UCH/kaggle-epilepsy                                        #
-#                                                                                            #
-##############################################################################################
+######################################################################################
+# File Name: GetMetaData.R                                                           #
+# Purpose: Summarise metadata from EEG data files                                    #
+#                                                                                    #
+# Author: Ian Watson                                                                 #
+# Email1: d13128934@mydit.ie                                                         #
+# Email2: iantwatson@gmail.com                                                       #
+#                                                                                    #
+# Institution: Dublin Institute of Technology                                        #
+# Course Code: DT228B                                                                #
+# Course Title: MSc. Data Analytics                                                  # 
+# Date of Dissertation Commencement: September 2017                                  #
+# Title: A Comparison of SVM and Neural Network Classifiers for Epileptic Seizure    #
+# Prediction                                                                         #
+#                                                                                    #
+# R code for implementing a machine learning classification experiment to compare    #
+# the performance of SVM and neural network classifiers used for epileptic seizure   #
+# prediction                                                                         #
+#                                                                                    #
+# Parts of code adapted from Wei Wu & ESAI, Universidad CEU Cardenal Herrera,        #
+# (F. Zamora-Martínez,    #F. Muñoz-Malmaraz, P. Botella-Rocamora, J. Pardo).        # 
+#                                                                                    #
+######################################################################################
+# Copyright (c) 2014, Wei Wu                                                         #
+#                                                                                    #
+# Permission is hereby granted, free of charge, to any person obtaining a copy       #
+# of this software and associated documentation files (the "Software"), to deal      #
+# in the Software without restriction, including without limitation the rights       #
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell          #
+# copies of the Software, and to permit persons to whom the Software is              #
+# furnished to do so, subject to the following conditions:                           #
+#                                                                                    #
+# The above copyright notice and this permission notice shall be included in all     #
+# copies or substantial portions of the Software.                                    #
+#                                                                                    #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR         #
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,           #
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE        #
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER             #
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,      #
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS             #
+# IN THE SOFTWARE.                                                                   #
+#                                                                                    # 
+# See: https://github.com/wei-wu-nyc/Kaggle-SeizureDetection-Official                #
+#                                                                                    #
+######################################################################################
+# Copyright (c) 2014, ESAI, Universidad CEU Cardenal Herrera,                        #
+# (F. Zamora-Martínez, F. Muñoz-Malmaraz, P. Botella-Rocamora, J. Pardo)             #
+#                                                                                    #
+# Permission is hereby granted, free of charge, to any person obtaining a copy       #
+# of this software and associated documentation files (the "Software"), to deal      #
+# in the Software without restriction, including without limitation the rights       #
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell          #
+# copies of the Software, and to permit persons to whom the Software is              #
+# furnished to do so, subject to the following conditions:                           #
+#                                                                                    #
+# The above copyright notice and this permission notice shall be included in all     #
+# copies or substantial portions of the Software.                                    #
+#                                                                                    #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR         #
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,           #
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE        #
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER             #
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,      #
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS             #
+# IN THE SOFTWARE.                                                                   #
+#                                                                                    # 
+# See https://github.com/ESAI-CEU-UCH/kaggle-epilepsy                                #
+#                                                                                    #
+######################################################################################
 
 # This file should be called from the main code file SeizurePrediction.R
 
 # Get metadata for all files and summarise
-metadata <- function (){
+
+# Initialise row counter
+inum <- 1
+
+# Set up logical array with 8000 elements ~ total number of data files
+log.array <- rep(NA, 8000)
+# Create results data frame
+meta.data.results <- data.frame(filename = log.array, seconds = log.array,
+                                frequency = log.array, channels = log.array,
+                                labels = log.array, sequence = log.array,
+                                samples = log.array)
+
+# Loop for all patients' folders
+for (folder in patient.name) {
   
-  # Initialise counter
-  inum = 1
- 
-  # Set up logical array with 7000 elements; 1000 elements per patient
-  # This would perhaps be the array of results eg 0 = non-seizure 1 = seizure.
-  # Set up logical array with 7000 elements
-  nv=rep(NA,length(types)*100)
-  # Create results data frame
-  summary_df=data.frame(fname=nv, second=nv, freq=nv, ch=nv,label=nv, seq=nv, datalen=nv)
+  # Set working directory here
+  # This can be used to check the full dataset...
+  data.dir <- paste0(full.dataset.dir, folder)
+  # ...or it can be used to check the sample data
+  # data.dir <- paste0(sample.dataset.dir, folder)
+  setwd(data.dir)
   
-  for (mytype in types) {
-    # Set path for data files, each patient in its own folder
-    datadir=paste0(parent.dir,mytype)
-    
-    # Get list of interictal files
-    interfiles=dir(datadir, ".*_interictal_segment_.*.mat")
-    # Get list of preicatal files
-    prefiles=dir(datadir, ".*_preictal_segment_.*.mat")
-    
-    for (myfile in interfiles) {
-      filename=paste0(datadir,"/",myfile)
-      # Read in .mat file
-      retval=read_one_matfile(filename)
-      # Get length of clip
-      seconds=retval[["seconds"]]
-      # Get sample frequency
-      freq=retval[["freq"]]
-      # Get sequence number
-      seq=retval[["seq"]]
-      # Get electrode labels
-      labels=retval[["labels"]]
-      summary_df[inum,]=c(myfile,retval[["seconds"]],retval[["freq"]],length(retval[["labels"]]),
-                          retval[["labels"]][1], retval[["seq"]],ncol(retval[[1]]))
-      inum=inum+1
-    }
-    
-    for (myfile in prefiles) {
-      filename=paste0(datadir,"/",myfile)
-      # Read in .mat file
-      retval=read_one_matfile(filename)
-      # Get length of clip
-      seconds=retval[["seconds"]]
-      # Get sample frequency
-      freq=retval[["freq"]]
-      # Get sequence number
-      seq=retval[["seq"]]
-      summary_df[inum,]=c(myfile,retval[["seconds"]],retval[["freq"]],length(retval[["labels"]]),
-                          retval[["labels"]][1], retval[["seq"]],ncol(retval[[1]]))
-      inum=inum+1
-      
-    }
-    
-    
+  # Get list of files for processing
+  list.of.files <- dir(data.dir, "*.mat")
+  
+  # Remove existing log file
+  file.remove(paste0(folder, "_metadata_summary.txt"))
+  
+  # Create log file
+  logFile = paste0(folder, "_metadata_summary.txt")
+  
+  # Loop for all files in the patient folder
+  for (filename in list.of.files) {
+
+    # Message to console
+    cat(paste0("Getting metadata ", filename, " ", Sys.time()), "\n")
+    # Read in .mat file
+    EEG.mat <- read.EEG.file(filename)
+    # Get length of file segment in seconds
+    seconds <- EEG.mat[["seconds"]]
+    # Get sample frequency
+    freq <- EEG.mat[["frequency"]]
+    # Get sequence number of file
+    seq <- EEG.mat[["sequence"]]
+    # Get electrode labels
+    labels <- EEG.mat[["labels"]]
+    # Write to result data frame
+    meta.data.results[inum, ] <- c(filename,
+                                   EEG.mat[["seconds"]],
+                                   EEG.mat[["freq"]],
+                                   length(EEG.mat[["labels"]]),  # No. channels
+                                   EEG.mat[["labels"]][1],
+                                   EEG.mat[["seq"]],
+                                   ncol(EEG.mat[[1]]))  # No. samples
+    # Increment row counter
+    inum=inum+1
+    # Write to log file
+    cat(paste0("Checked ", filename, " ", Sys.time()),  # Write to log
+        file = logFile, append = TRUE, sep = "\n")
   }
-  
-  return(summary_df)
-  
 }
 
-#Run the following to get the summary
-#a <- metadata()
+# Remove any rows not used
+meta.data.results <- meta.data.results[complete.cases(meta.data.results), ]
+
+# Reset working directory
+setwd(parent.dir)
+
+# Save results to a .rda file
+save(meta.data.results, file = "metadata.rda")
+
+######################################################################################
