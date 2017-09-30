@@ -96,15 +96,17 @@ read.EEG.file <- function (filename) {
   #   filename: The name of the EEG data file
   # 
   # Returns:
-  #   a list of lists, with five elements. Element 1 is the electrode data, and the others
-  #   contain metadata (length; sample rate; electrode labels and sample sequence)
+  #   a list of lists, with five elements. Element 1 is the electrode data,
+  #   and the others contain metadata (length; sample rate; electrode labels
+  #   and sample sequence)
   
   # Initiliase list for EEG data structure
   EEG.mat <- list()
   # Read in the .mat file
   a <- readMat(filename)
   # Data matrix - element 1 
-  # 16 rows by ~24,000 columns = 16 by (200 x 600) = electrode by (sample rate X length seconds) 
+  # 16 rows by ~24,000 columns = 16 by (200 x 600) or
+  # 16 electrode by (sample rate X length seconds) 
   EEG.mat[["mat"]] <- a[[1]][[1]]
   # EEG length - element 2
   EEG.mat[["seconds"]] <- as.numeric(a[[1]][[2]])
@@ -166,7 +168,7 @@ patient.num <- c('Dog_1' = 1, 'Dog_2' = 2, 'Dog_3' = 3,
 # Read in the data files and create a summary table of metadata
 # Required initially and when rebuilding the dataset
 
-source ("GetMetaData.R")
+# source ("GetMetaData.R")
 
 #Save this to a rda file? think its used later?
 
@@ -180,4 +182,21 @@ source ("GetMetaData.R")
 # # Get list of preicatal files
 # prefiles=dir(datadir, ".*_preictal_segment_.*.mat")
 
+# 
+# 
+# 
+# loadMat = function(filename)
+# {
+#   library(R.matlab)
+#   rawData = readMat(filename)
+#   data = rawData[[1]]
+#   matrix = do.call(rbind, data['data',,])
+#   totalSec = unlist(data['data.length.sec',,])
+#   sequence = unlist(data['sequence',,])
+#   measures = as.data.frame(t(matrix))
+#   measures
+# }
+# 
+# a <-loadMat(filename)
+# 
 

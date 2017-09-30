@@ -1,5 +1,33 @@
 require(R.matlab)
 
+parent.dir = getwd()
+data.dir = "/Sample Data/"
+mytype = "Dog_1"
+myfile = "Dog_1_interictal_segment_0476.mat"
+mymat <- orimat
+
+#Code sequence
+
+# 1) set variables
+# 2) loop for all patients
+#       loop for all files
+#            read in .mat file
+#            call downsample function
+#            
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+
 # Read in EEG file
 read_one_matfile <- function (filename) {
 	# Initiliase list for EEG data structure
@@ -220,11 +248,14 @@ gen_features_onefile <- function (indata, f, t) {
 	feats
 }
 
+
+# Returns a list of values. Each element in the list is a window or segment of the data. There are x elements corresponding to y splits.
+# If nsplit = 10 then there are 10 elements in the list
 # Windowing function
-split_mat <- function (mymat, nsplit) {
-	if (ncol(mymat) %% nsplit != 0) {
-		stop(paste("In split_mat(), the nsplit",nsplit,"and column number",ncol(mymat),"do not match to even blocks."))
-	}
+split_mat <- function (mymat, nsplit) {  # this error function breaks every time - not sure what it achieves
+#	if (ncol(mymat) %% nsplit != 0) {  # x %% y or x modulus y
+#		stop(paste("In split_mat(), the nsplit",nsplit,"and column number",ncol(mymat),"do not match to even blocks."))
+#	}
 	retdata=list()
 	mysize=ncol(mymat) / nsplit
 	for (i in 1:nsplit) {
@@ -238,14 +269,14 @@ split_mat <- function (mymat, nsplit) {
   # Set target sample rate for resampling (Hz)
   fixfreq=200
   # Set window size 
-  # nsplit=10	# original clip is 10min=600sec, nsplit=10, new length=60sec, nsplit=20, newlength=30sec, nsplit=40 newlength=15sec
+   nsplit=10	# original clip is 10min=600sec, nsplit=10, new length=60sec, nsplit=20, newlength=30sec, nsplit=40 newlength=15sec
   
   # FFT parameters
   # Base for log calc?
-  #dolog=1
-  #addFFT=2
-  #FFTratio=0.2
-  #FFTavglen=24
+  dolog=1
+  addFFT=2
+  FFTratio=0.2
+  FFTavglen=24
   # Set counter to identify record number 
   inum=1
 
@@ -265,7 +296,7 @@ for (mytype in types) {
   # Set timer for ??  Overwritten in the following loops. redundant??? 
   #begTime0=Sys.time()
   # Set path for data files, each patient in its own folder
-  datadir=paste0("C:/Users/ian_wa/Documents/Epilepsy/Data/",mytype)
+  datadir=paste0(parent.dir,data.dir,mytype)
 
   # Get list of interictal files
   interfiles=dir(datadir, ".*_interictal_segment_.*.mat")
@@ -298,13 +329,15 @@ for (mytype in types) {
   	# Get sequence number
   	seq=retval[["seq"]]
   	
+  	# Frankly, skip this code for resampling
+  	# This creates an object 'xmat' which appears nowhere else in the code? Maybe in another file?
   	# If sampling frequency is less than new sample rate then downsample 
   	# Factor is Q/P or Fs/Ftarget
   	if (fixfreq > 0 && fixfreq < freq) {
   		xmat=down_sampling(orimat, freq/fixfreq)
   		freq=fixfreq
   	}
-
+    
   	newmats=split_mat(orimat, nsplit)
   	for (mi in 1:nsplit) {
   		mymat=newmats[[mi]]
