@@ -38,26 +38,20 @@ Notes
 
 Not clear if resampling is necessary. Patient_1 and Patient_2 data has higher sample rate (I believe). This can be a part of the different studies that are undertaken - variations on sample rate as part of data preparation to see if different results are obtained. Also vary window size of data.
 
-Wei Wu code has feature generation that does not use windowing - identify and remove
+You need to decompose the data files. Dataset -> File -> Windowed Files -> EEG Channel - Time series (might make a good figure?)  
 
+
+Wei Wu code mentions feature generation that does not use windowing - identify and remove ?
 
 To Do
 Print detailed project plan and platicise
 Put milestones into Google calendar
 Decide on a train/test/holdout split
-Refile data files on One Drive in individual folders per patient
 Figure out how to plot EEG. EEGkit may only work on a EDF. Matt Craddock new library
 is not on CRAN and only has install instructions for Bash.
-Set up weekly update template in ppt.
+Weekly progress report
 Investigate R signal processing packages
 Read through Kaggle discussions for R coding ideas
-
-Monday - 1 hour on coding - data integrity checking
-Wednesday - 3 hours on LaTeX and set-up
-Wednesday - 1.5 hours on integrity checking data
-Thursday - 1 hours on LaTeX
-Friday - 2.5 hours on coding
-
 
 Dataset size
 Dog1 - 1006 files
@@ -69,3 +63,13 @@ Pat1 - 263 files
 Pat2 - 210 files
 Total 7999
 
+
+Reference to requirement to perform FFT on diff of a series
+https://stackoverflow.com/questions/14010605/fast-fourier-transform-in-r
+
+
+
+Signal processing packages:
+
+Spectral
+TSA

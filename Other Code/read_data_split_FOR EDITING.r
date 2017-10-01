@@ -4,17 +4,34 @@ parent.dir = getwd()
 data.dir = "/Sample Data/"
 mytype = "Dog_1"
 myfile = "Dog_1_interictal_segment_0476.mat"
-mymat <- orimat
+mi = 1
+indata = mymat
+f = 400 # for sample freq
+t = 60 # for split time
+i = 1 # for channel num
+indata <- indata[1,] # for passing to gen_features_oneseries
+pre = prename
+
 
 #Code sequence
 
 # 1) set variables
-# 2) loop for all patients
-#       loop for all files
-#            read in .mat file
-#            call downsample function
+# 2) loop for all patients (set mytype)
+#       loop for interictal files (set myfile)
+#            read in .mat file 
+#            call downsample function  
+#            call the split function
+#            loop for each window (set mi)
+#                   call gen_features_onefile function
+#                           do some stuff
+#                           loop for each channel (set i)
+#                                 do some stuff
+#                                 call gen_features_oneseries function
+#                                       do some stuff
+#                                       calculate delta1 and delta2
+#                                             call gen_features_onearray function
 #            
-#
+#       loop for ictal files
 #
 #
 #
@@ -105,27 +122,57 @@ down_sampling <- function (data, factor = 1) {
 
 # Generate features for array?
 gen_features_onearray <- function (indata, pre, freqs) {
+  
+  #Args:  indata is a time-series of data from one channel. Can be orginal, delta1 or delta2.
+  #       pre is the channel name
+  #       freqs is that weird ass sequence...
+  
+  
+
+  feats[paste0(pre,"_","Sd")]=sd(abs(indata))
+  a=summary(abs(indata))[sumindex]
+  heads=paste0(pre, "Amp", "_",sumheads)
+  feats[heads]=a
+  feats[paste0(pre,"Amp_Sd")]=sd(abs(indata))
+  freqs=freqs[1:length(indata)]
+  #	cat(paste("In gen_features_onearray(), before fft size is:",paste(dim(indata),collapse=','),"\n"))
+  
+  # Init object
 	feats=c()
+	#Summary statistics from Summary() function
 	sumheads=c('Min','1stQrt','Med','Mean','3rdQrt','Max')
 	sumindex=c(4,6)
+	#Set mean and max
 	sumheads=sumheads[sumindex]
-	a=summary(indata)[sumindex]
-	heads=paste0(pre,"_",sumheads)
-	feats[heads]=a
-	feats[paste0(pre,"_","Sd")]=sd(abs(indata))
+	
+	#Get summary stats for MEAN and MAX
+	a=summary(indata)[sumindex] # Gets the 4th and 6th elements from the summary data (mean and max)
+	#Get Mean and Max and populate
+	feats[paste0(pre,"_",sumheads)] = a
+	
+  #Get SD and populate
+	feats[paste0(pre,"_","Sd")]=sd(indata)
+	
+	# Get absolute value for mean and max (calculates the mean Amplitude and max Amplitude)
 	a=summary(abs(indata))[sumindex]
-	heads=paste0(pre, "Amp", "_",sumheads)
-	feats[heads]=a
+	feats[paste0(pre, "Amp", "_",sumheads)] = a
+	
+	#Calculate the SD of the amplitude
 	feats[paste0(pre,"Amp_Sd")]=sd(abs(indata))
+	
+	#Calculated
 	freqs=freqs[1:length(indata)]
 #	cat(paste("In gen_features_onearray(), before fft size is:",paste(dim(indata),collapse=','),"\n"))
 #	flush.console()
 #	b=Sys.time()
-	if (dolog == 1) {
-		myfft=log(abs(fft(indata))+1)
+	#FFT function follows
+	
+	if (dolog == 1) { # Set in early parameter setup
+		myfft=log(abs(fft(indata))+1) #log of FFT - what is the difference FFT vs log FFT??
 	} else {
 		myfft=abs(fft(indata))
 	}
+	#Calculate mean and max of FFT series
 	a=summary(myfft)[sumindex]
 #	cat(paste("After fft, time used:",format(Sys.time()-b),"\n"));flush.console()
 	heads=paste0(pre,"FFT_",sumheads)
@@ -144,14 +191,33 @@ gen_features_onearray <- function (indata, pre, freqs) {
 	feats
 }
 
-# Generate feature for series?
+# Generate feature for a single windowed EEG channel
 gen_features_oneseries <- function (indata, pre, freqs) {
+  # Args: indata is a numeric sequence consisting of all the data points for a singel EEG channel 
+  #       pre is channel name
+  #       freqs is a numeric sequence 1/60 to 1/24000
+  
+  #init object
 	feats=c()
+	#convert to vector seems redundant - is.vector returns TRUE before this command
 	indata=as.vector(indata)
+	
+	# Initialise numeric object
 	delta1=rep(0,length(indata))
+	
+	# This is simply done by the R diff() function 
+	# Calculates the difference between consecutive data points in indata d(n)-d(n-1)
+	# for indata = (47, 41, 43, 53...) delta1 = (-6,2,10...)
 	delta1[1:(length(indata)-1)]=indata[2:length(indata)]-indata[1:(length(indata)-1)]
+	
+	#This can be done by the diff() of the diff()
+	# Calculates the difference between consecutive data points in delta1 d(n)-d(n-1)
+	# for delta1 = (-6, 2, 10, -6 ...) delta2 = (8,8,-16...)
 	delta2=rep(0,length(indata))
 	delta2[1:(length(delta1)-2)]=delta1[2:(length(delta1)-1)]-delta1[1:(length(delta1)-2)]
+  
+	
+	#Generate features for original time series (indata) and two delta series (delta1 and delta2)
 	feats=c(feats, gen_features_onearray(indata, paste0(pre,""), freqs))
 	feats=c(feats, gen_features_onearray(delta1, paste0(pre,"Del1"), freqs))
 	feats=c(feats, gen_features_onearray(delta2, paste0(pre,"Del2"), freqs))
@@ -160,17 +226,33 @@ gen_features_oneseries <- function (indata, pre, freqs) {
 
 # Generate feature for file?
 gen_features_onefile <- function (indata, f, t) {
+  
+  #  Args: indata = submatrix consisting of 10 seconds of data 
+  #        f = sample frequency
+  #        t = length of time of matrix (seconds/nsplit = 600/10 = 60 seconds)
+  
+  #Set timere
 	b=Sys.time()
+	#Initialise object
 	feats=c()
+	# Get number of channels (16)
 	chans=nrow(indata)
+	# Get number of data points (~24000)
 	nc=ncol(indata)
+	# Seems redundant - at no point is the number of data points precisely = sample rate x seconds
+	# Will crap out every time
 	if (round(f*t) != nc) {
 		stop(paste("Stop in gen_features_onefile(), f*t=",f*t,"!= number of data points,",nc))
 	}
-	freqs=(1:nc)*1/t
+	
+	freqs=(1:nc)*1/t # Takes the column index and divides by 60. WTF for ???
+	
+	# Loop for each channel
 	for (i in 1:chans) {
-		prename=paste0("chan",i)
-		feats=c(feats,gen_features_oneseries (indata[i,], pre=prename, freqs))
+		prename=paste0("chan",i) # make a channel name  = 'chan1', 'chan2' etc
+		# passes a single channel to the function, the channel name and that fucking odd 'freqs' numeric sequence
+		# The single channel is passed as a numeric sequence; class(indata[1,]) = 'numeric'
+		feats=c(feats,gen_features_oneseries (indata[i,], pre=prename, freqs)) 
 	}
 	fnames=names(feats)
 #	cat(paste("Total number of features before global features",length(feats),format(Sys.time()-b),"\n"))
@@ -248,7 +330,6 @@ gen_features_onefile <- function (indata, f, t) {
 	feats
 }
 
-
 # Returns a list of values. Each element in the list is a window or segment of the data. There are x elements corresponding to y splits.
 # If nsplit = 10 then there are 10 elements in the list
 # Windowing function
@@ -256,11 +337,14 @@ split_mat <- function (mymat, nsplit) {  # this error function breaks every time
 #	if (ncol(mymat) %% nsplit != 0) {  # x %% y or x modulus y
 #		stop(paste("In split_mat(), the nsplit",nsplit,"and column number",ncol(mymat),"do not match to even blocks."))
 #	}
+  # Set up a list
 	retdata=list()
-	mysize=ncol(mymat) / nsplit
+	# length for each sub-matrix
+	mysize=ncol(mymat) / nsplit # Total colums / number of splits
 	for (i in 1:nsplit) {
-		retdata[[i]]=mymat[,((i-1)*mysize+1):(i*mysize)]
+		retdata[[i]]=mymat[,((i-1)*mysize+1):(i*mysize)] # Create a list of matrices  - column 0:23976, then 23977:47952, 
 	} 
+	# return
 	retdata
 }
 
@@ -291,7 +375,7 @@ split_mat <- function (mymat, nsplit) {  # this error function breaks every time
 }
 
 # Main code sequence
-# Loop for each patient
+# Loop for all patients
 for (mytype in types) {
   # Set timer for ??  Overwritten in the following loops. redundant??? 
   #begTime0=Sys.time()
@@ -329,8 +413,8 @@ for (mytype in types) {
   	# Get sequence number
   	seq=retval[["seq"]]
   	
-  	# Frankly, skip this code for resampling
-  	# This creates an object 'xmat' which appears nowhere else in the code? Maybe in another file?
+  	# Frankly, I think skip this code for resampling. This creates an object 'xmat' which appears
+  	# nowhere else in the code? Maybe in another file?
   	# If sampling frequency is less than new sample rate then downsample 
   	# Factor is Q/P or Fs/Ftarget
   	if (fixfreq > 0 && fixfreq < freq) {
@@ -338,10 +422,12 @@ for (mytype in types) {
   		freq=fixfreq
   	}
     
-  	newmats=split_mat(orimat, nsplit)
-  	for (mi in 1:nsplit) {
-  		mymat=newmats[[mi]]
-  		f=gen_features_onefile(mymat, freq, seconds/nsplit)
+  	# Code for splitting or windowing
+  	# Try to find a built-in funtion for doing this
+  	newmats=split_mat(orimat, nsplit)  # Splits matrix into a list of matrices, each 1/nsplit of the original is size
+  	for (mi in 1:nsplit) { # Step through the individual smaller matrices
+  		mymat=newmats[[mi]]  # Call the matrix by referencing the list 
+  		f=gen_features_onefile(mymat, freq, seconds/nsplit) # Call the function to make features....
   		f['seq']=seq
   		f['flag']=0
   		f['id']=typenums[mytype]*100000+isub*100+mi

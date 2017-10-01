@@ -75,7 +75,8 @@
 # List of required packages
 list.of.packages <- c("R.matlab",
                       "dplyr",
-                      "eegkit")
+                      "eegkit",
+                      "TSA")
 
 # Create list of required new packages
 new.packages <- list.of.packages[!(list.of.packages %in% 
@@ -199,4 +200,8 @@ patient.num <- c('Dog_1' = 1, 'Dog_2' = 2, 'Dog_3' = 3,
 # 
 # a <-loadMat(filename)
 # 
+
+#FFT plot using TSA package
+
+periodogram(indata,log='yes',plot=TRUE,ylab="Periodogram", xlab="Frequency") 
 
