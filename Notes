@@ -76,8 +76,13 @@ Signal processing packages:
 Spectral
 TSA
 
+Package e1071 for SVM
+Package erpR for ERP may have some function?
+
+
 
 Progress report
-
 Sunday 6 hours coding
 
+
+There are two branches for the ESIA code - do you have the latest?
