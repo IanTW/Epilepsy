@@ -22,21 +22,29 @@ pre = prename
 #            call downsample function  
 #            call the split function
 #            loop for each window (set mi)
-#                   call gen_features_onefile function
+#                   call gen_features_onefile function (operates on windowed file)
 #                           do some stuff
-#                           loop for each channel (set i)
+#                           loop for 16 channels (set i){
 #                                 do some stuff
-#                                 call gen_features_oneseries function
+#                                 call gen_features_oneseries function (operates on EEG channel)
 #                                       do some stuff
 #                                       calculate delta1 and delta2
-#                                             call gen_features_onearray function
-#            
-#       loop for ictal files
+#                                       call gen_features_onearray function for indata
+#                                             build feature vector
+#                                       call gen_features_onearray function for delta1
+#                                             build feature vector
+#                                       call gen_features_onearray function for delta2
+#                                             build feature vector
+#                           } end loop for all channels
+#                           do some relabelling of features
+#
+#
+#      loop for ictal files
 #
 #
 #
 #
-#
+#resume on line 260
 #
 #
 #
@@ -126,16 +134,7 @@ gen_features_onearray <- function (indata, pre, freqs) {
   #Args:  indata is a time-series of data from one channel. Can be orginal, delta1 or delta2.
   #       pre is the channel name
   #       freqs is that weird ass sequence...
-  
-  
-
-  feats[paste0(pre,"_","Sd")]=sd(abs(indata))
-  a=summary(abs(indata))[sumindex]
-  heads=paste0(pre, "Amp", "_",sumheads)
-  feats[heads]=a
-  feats[paste0(pre,"Amp_Sd")]=sd(abs(indata))
-  freqs=freqs[1:length(indata)]
-  #	cat(paste("In gen_features_onearray(), before fft size is:",paste(dim(indata),collapse=','),"\n"))
+  #Think this might be calculating statistical moments ???
   
   # Init object
 	feats=c()
@@ -160,7 +159,7 @@ gen_features_onearray <- function (indata, pre, freqs) {
 	#Calculate the SD of the amplitude
 	feats[paste0(pre,"Amp_Sd")]=sd(abs(indata))
 	
-	#Calculated
+	#Calculated this sequence again...
 	freqs=freqs[1:length(indata)]
 #	cat(paste("In gen_features_onearray(), before fft size is:",paste(dim(indata),collapse=','),"\n"))
 #	flush.console()
@@ -175,15 +174,19 @@ gen_features_onearray <- function (indata, pre, freqs) {
 	#Calculate mean and max of FFT series
 	a=summary(myfft)[sumindex]
 #	cat(paste("After fft, time used:",format(Sys.time()-b),"\n"));flush.console()
+	# Paste into feature vector
 	heads=paste0(pre,"FFT_",sumheads)
 	feats[heads]=a
+	#Calculate SD and max Freq and paste into vector
 	feats[paste0(pre,"FFT_","Sd")]=sd(myfft)
 	feats[paste0(pre,"FFT_","MaxFreq")]=freqs[which.max(myfft)]
-	if (addFFT == 1 || addFFT == 2) {
+	
+	if (addFFT == 1 || addFFT == 2) { #set variable at beginning
 		if (addFFT == 2) {
-			myfft=(myfft-mean(myfft))/sd(myfft)
+			myfft=(myfft-mean(myfft))/sd(myfft) # FFT - mean(FFT)/sd(FFT)
 		}
-		myfft=myfft[1:round(FFTratio*length(myfft))]
+	  
+		myfft=myfft[1:round(FFTratio*length(myfft))] # FFT ratio set at beginning
 		myfft=down_sampling(myfft, round(length(myfft)/FFTavglen))
 		colnames=paste0(pre,"FFT_",sprintf("%02d",1:length(myfft)))
 		feats[colnames]=myfft
@@ -216,11 +219,10 @@ gen_features_oneseries <- function (indata, pre, freqs) {
 	delta2=rep(0,length(indata))
 	delta2[1:(length(delta1)-2)]=delta1[2:(length(delta1)-1)]-delta1[1:(length(delta1)-2)]
   
-	
 	#Generate features for original time series (indata) and two delta series (delta1 and delta2)
-	feats=c(feats, gen_features_onearray(indata, paste0(pre,""), freqs))
-	feats=c(feats, gen_features_onearray(delta1, paste0(pre,"Del1"), freqs))
-	feats=c(feats, gen_features_onearray(delta2, paste0(pre,"Del2"), freqs))
+	feats=c(feats, gen_features_onearray(indata, paste0(pre,""), freqs)) # 33 features
+	feats=c(feats, gen_features_onearray(delta1, paste0(pre,"Del1"), freqs)) #33 features
+	feats=c(feats, gen_features_onearray(delta2, paste0(pre,"Del2"), freqs)) # 33 features, total 99
 	feats
 }
 
@@ -232,7 +234,7 @@ gen_features_onefile <- function (indata, f, t) {
   #        t = length of time of matrix (seconds/nsplit = 600/10 = 60 seconds)
   
   #Set timere
-	b=Sys.time()
+	#b=Sys.time()
 	#Initialise object
 	feats=c()
 	# Get number of channels (16)
@@ -241,9 +243,9 @@ gen_features_onefile <- function (indata, f, t) {
 	nc=ncol(indata)
 	# Seems redundant - at no point is the number of data points precisely = sample rate x seconds
 	# Will crap out every time
-	if (round(f*t) != nc) {
-		stop(paste("Stop in gen_features_onefile(), f*t=",f*t,"!= number of data points,",nc))
-	}
+	#if (round(f*t) != nc) {
+	#	stop(paste("Stop in gen_features_onefile(), f*t=",f*t,"!= number of data points,",nc))
+	#}
 	
 	freqs=(1:nc)*1/t # Takes the column index and divides by 60. WTF for ???
 	
@@ -254,12 +256,15 @@ gen_features_onefile <- function (indata, f, t) {
 		# The single channel is passed as a numeric sequence; class(indata[1,]) = 'numeric'
 		feats=c(feats,gen_features_oneseries (indata[i,], pre=prename, freqs)) 
 	}
+	# Get the labels from the feature vector
 	fnames=names(feats)
-#	cat(paste("Total number of features before global features",length(feats),format(Sys.time()-b),"\n"))
+	cat(paste("Total number of features before global features",length(feats),format(Sys.time()-b),"\n"))
 #	flush.console()
 #	uniq_postfix=grep('^chan[0-9]*FFT_[0-9][0-9]',fnames,invert=T,value=T)
 	uniq_postfix=fnames
+	#Regex to remove chanX references
 	uniq_postfix=unique(gsub('^chan[0-9]*','',uniq_postfix))
+	# Loop through labels
 	for (mypost in uniq_postfix) {
 		pre=paste0("All",mypost)
 		mynames=grep(paste0('^chan[0-9]*',mypost),fnames,value=T)
@@ -390,7 +395,7 @@ for (mytype in types) {
   # Initialise object for training data
   trainmat=NULL
   # Set timer for ??
-  begTime=Sys.time()
+  #begTime=Sys.time()
   # Set counter for ??
   isub=1
   
@@ -417,10 +422,10 @@ for (mytype in types) {
   	# nowhere else in the code? Maybe in another file?
   	# If sampling frequency is less than new sample rate then downsample 
   	# Factor is Q/P or Fs/Ftarget
-  	if (fixfreq > 0 && fixfreq < freq) {
-  		xmat=down_sampling(orimat, freq/fixfreq)
-  		freq=fixfreq
-  	}
+ # 	if (fixfreq > 0 && fixfreq < freq) {
+ # 		xmat=down_sampling(orimat, freq/fixfreq)
+ # 		freq=fixfreq
+ # 	}
     
   	# Code for splitting or windowing
   	# Try to find a built-in funtion for doing this
@@ -450,6 +455,7 @@ for (mytype in types) {
   	flush.console()
   }
   
+  # Loop for all preictal files
   for (myfile in prefiles) {
   	begTime0=Sys.time()
   	filename=paste0(datadir,"/",myfile)
