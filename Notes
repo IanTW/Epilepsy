@@ -13,16 +13,18 @@ Functional blocks of code:
 
 Main          - main code sequence                     - SeizurePrediction.R        - in progress
 
-Preprocessing - data preparation                       - RenameTestData.R
-              - data error checking                    - ??????????????             - in testing
-              - data metadata/summary                  - GetMetaData.R              - in development
+Preprocessing - data preparation                       - RenameTestData.R           - complete
+              - data error checking                    - ErrorCheckData             - complete
+              - data metadata/summary                  - GetMetaData.R              - complete
 
-Features      - generate                                
-              - extraction
-              - feature vector construction
+Features      - extraction                             - TBD                        - development              
               - dimensionality reduction
 
-Algorithm     - training
+Algorithm(SVM)- training
+              - testing
+              - parameter tuning
+
+Algorithm(SVM)- training
               - testing
               - parameter tuning
 
@@ -73,3 +75,9 @@ Signal processing packages:
 
 Spectral
 TSA
+
+
+Progress report
+
+Sunday 6 hours coding
+
