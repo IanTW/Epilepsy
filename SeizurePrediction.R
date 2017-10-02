@@ -87,49 +87,49 @@ if(length(new.packages)) install.packages(new.packages)
 # Load packages
 lapply(list.of.packages,function(x){library(x,character.only=TRUE)})
 
-################################# FUNCTION TO READ EEG FILE ##########################
+################################ REQUIRED FUNCTIONS ##################################
 
-# Read in EEG file
+# Function to read in EEG file
 read.EEG.file <- function (filename) {
   # Reads in a single EEG .mat file 
   #
   # Args:
-  #   filename: The name of the EEG data file
+  #   filename: The name of the input EEG data file in .mat format
   # 
   # Returns:
-  #   a list of lists, with five elements. Element 1 is the electrode data,
-  #   and the others contain metadata (length; sample rate; electrode labels
+  #   EEG.file - a list of lists, with five elements. Element 1 is the electrode 
+  #   data and the others contain metadata (length; sample rate; electrode labels
   #   and sample sequence)
   
   # Initiliase list for EEG data structure
-  EEG.mat <- list()
+  EEG.file <- list()
   # Read in the .mat file
   a <- readMat(filename)
   # Data matrix - element 1 
   # 16 rows by ~24,000 columns = 16 by (200 x 600) or
   # 16 electrode by (sample rate X length seconds) 
-  EEG.mat[["mat"]] <- a[[1]][[1]]
+  EEG.file[["mat"]] <- a[[1]][[1]]
   # EEG length - element 2
-  EEG.mat[["seconds"]] <- as.numeric(a[[1]][[2]])
+  EEG.file[["seconds"]] <- as.numeric(a[[1]][[2]])
   # Sample rate - element 3
-  EEG.mat[["freq"]] <- as.numeric(a[[1]][[3]])
+  EEG.file[["freq"]] <- as.numeric(a[[1]][[3]])
   # EEG electrode labels 
-  EEG.mat[["labels"]] <- unlist(a[[1]][[4]])
+  EEG.file[["labels"]] <- unlist(a[[1]][[4]])
   # EEG sequence number if available or set to -1
   if (length(a[[1]]) > 4) {
-    EEG.mat[["seq"]] <- as.numeric(a[[1]][[5]])
+    EEG.file[["seq"]] <- as.numeric(a[[1]][[5]])
   } else {
-    EEG.mat[["seq"]] <- -1
+    EEG.file[["seq"]] <- -1
   }
   # Remove object
   rm(a)
   # Garbage collection to reallocate memory
   gc()
   # Return
-  EEG.mat
+  EEG.file
 }
 
-################################# SET WORKING DIRECTORY ##############################
+############################### SET WORKING DIRECTORY ################################
 
 # Code is developed on several machines and location of data files may vary
 # Get working directory for code and data samples
@@ -171,9 +171,35 @@ patient.num <- c('Dog_1' = 1, 'Dog_2' = 2, 'Dog_3' = 3,
 
 # source ("GetMetaData.R")
 
-#Save this to a rda file? think its used later?
+# Results are saved to metadata.rda
 
-############################### PREPROCESSING OF DATA FILES ##########################
+################################## FEATURE ENGINEERING ###############################
+
+# Construct EEG features and output a feature vector for the classifiers
+# Will be run each time features are optimised
+
+# source ("MakeFeature.R")
+
+################################ SUPPORT VECTOR MACHINE ##############################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

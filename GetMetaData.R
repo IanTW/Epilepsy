@@ -109,23 +109,23 @@ for (folder in patient.name) {
     # Message to console
     cat(paste0("Getting metadata ", filename, " ", Sys.time()), "\n")
     # Read in .mat file
-    EEG.mat <- read.EEG.file(filename)
+    EEG.file <- read.EEG.file(filename)
     # Get length of file segment in seconds
-    seconds <- EEG.mat[["seconds"]]
+    seconds <- EEG.file[["seconds"]]
     # Get sample frequency
-    freq <- EEG.mat[["frequency"]]
+    freq <- EEG.file[["frequency"]]
     # Get sequence number of file
-    seq <- EEG.mat[["sequence"]]
+    seq <- EEG.file[["sequence"]]
     # Get electrode labels
-    labels <- EEG.mat[["labels"]]
+    labels <- EEG.file[["labels"]]
     # Write to result data frame
     meta.data.results[inum, ] <- c(filename,
-                                   EEG.mat[["seconds"]],
-                                   EEG.mat[["freq"]],
-                                   length(EEG.mat[["labels"]]),  # No. channels
-                                   EEG.mat[["labels"]][1],
-                                   EEG.mat[["seq"]],
-                                   ncol(EEG.mat[[1]]))  # No. samples
+                                   EEG.file[["seconds"]],
+                                   EEG.file[["freq"]],
+                                   length(EEG.file[["labels"]]),  # No. channels
+                                   EEG.file[["labels"]][1],
+                                   EEG.file[["seq"]],
+                                   ncol(EEG.file[[1]]))  # No. samples
     # Increment row counter
     inum=inum+1
     # Write to log file
