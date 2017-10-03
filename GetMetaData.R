@@ -1,5 +1,5 @@
 ######################################################################################
-# File Name: GetMetaData.R                                                           #
+# File Name: GetMetadata.R                                                           #
 # Purpose: Summarise metadata from EEG data files                                    #
 #                                                                                    #
 # Author: Ian Watson                                                                 #

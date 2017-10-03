@@ -162,14 +162,14 @@ patient.num <- c('Dog_1' = 1, 'Dog_2' = 2, 'Dog_3' = 3,
 # Check each data file by reading the data into a matrix
 # Recommended after any data file migrations
 
-# source ("ErrorCheckData.R")
+# source ("IntegrityCheck.R")
 
 ############################## PREPROCESSING - GET METADATA ##########################
 
 # Read in the data files and create a summary table of metadata
 # Required initially and when rebuilding the dataset
 
-# source ("GetMetaData.R")
+# source ("GetMetadata.R")
 
 # Results are saved to metadata.rda
 

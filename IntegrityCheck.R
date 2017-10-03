@@ -1,5 +1,5 @@
 ######################################################################################
-# File Name: ErrorCheckData.R                                                        #
+# File Name: IntegrityCheck.R                                                        #
 # Purpose: Integrity check the EEG data files                                        #
 #                                                                                    #
 # Author: Ian Watson                                                                 #

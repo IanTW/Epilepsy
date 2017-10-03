@@ -76,7 +76,7 @@ windowing <- function (eeg.time.series, num.split){
   # Windows a single EEG time series matrix into a list of windowed matrices.
   #
   # Args:
-  #   eeg.time.series: Multichannel EEG data in a matrix, each row is EEG channel
+  #   eeg.time.series: Multichannel EEG data in a matrix, each row is an EEG channel
   #   num.split: The number of splits to perform
   # Returns:
   #   a list of EEG matrices. The no. of elements in the list equals num.split
