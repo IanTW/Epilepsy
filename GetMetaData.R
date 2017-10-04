@@ -134,6 +134,10 @@ for (folder in folder.list) {
 # Remove any rows not used
 meta.data.results <- meta.data.results[complete.cases(meta.data.results), ]
 
+# Convert to factor
+coltofact <- c("seconds", "frequency", "channels", "labels", "sequence", "samples")
+meta.data.results[coltofact] <- lapply(meta.data.results[coltofact], factor)
+
 # Reset working directory
 setwd(parent.dir)
 

@@ -73,10 +73,10 @@
 
 # Install and load required R packages 
 # List of required packages
-list.of.packages <- c("R.matlab",
-                      "dplyr",
-                      "eegkit",
-                      "TSA")
+list.of.packages <- c("R.matlab",  # Handling *.mat files
+                      "eegkit",    # Visualising EEG
+                      "TSA",       # Time series tools
+                      "moments")   # Statistical moments
 
 # Create list of required new packages
 new.packages <- list.of.packages[!(list.of.packages %in% 
@@ -237,5 +237,5 @@ windowsize <- 60
 
 #FFT plot using TSA package
 
-periodogram(indata,log='yes',plot=TRUE,ylab="Periodogram", xlab="Frequency") 
+#periodogram(indata,log='yes',plot=TRUE,ylab="Periodogram", xlab="Frequency") 
 

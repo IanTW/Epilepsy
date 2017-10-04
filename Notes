@@ -53,11 +53,10 @@ Pat1 - 263 files
 Pat2 - 210 files
 Total 7999
 
+Experimental option - specific or non-specific. Train and test on Dog_1. Then see if Dog_1 can be used to predict others. Repeat for all patients.
 
 Reference to requirement to perform FFT on diff of a series
 https://stackoverflow.com/questions/14010605/fast-fourier-transform-in-r
-
-
 
 Signal processing packages:
 
@@ -68,13 +67,31 @@ Package e1071 for SVM
 Package erpR for ERP may have some function?
 package moments for statistical moments
 
-
 Progress report
 Sunday 6 hours coding
-
 
 There are two branches for the ESIA code - do you have the latest?
 
 Use .ts time series class in R for EEG 
+
+Going to need to downsample Patient files to same rate as Dog files. The file are longer ? so will generate different size feature vectors
+
+List of wei wu features
+    Per channel and per series (orig, Delta1 and Delta2, FFT(orig), FFT(D1), FFT(D2))
+    Max, mean, SD, max Freq (for FFT)
+
+    Per slice (across all channels and all features)
+    Max, mean, abs(Standard Dev)
+
+    All features averaged across all channels and then again made into Orig, Delta1, Delta2, FFT etc.
+    Max, mean, SD etc as per ind. channel
+    
+    Covariance matrix of original -> mean, max, sd, 2nd max, 3rd max (what is this?)
+    covariance of FFT matrix
+    
+
+
+
+
 
 

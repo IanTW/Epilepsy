@@ -93,37 +93,21 @@ feature.statistic <- function (EEG.channel, prefix){
   #   prefix: label for identifying channel number
   # Returns:
   #   feature.vector: extracted features
-  #
   
-  # Get summary statistics
-  stats <- summary(EEG.channel) 
-  
-  # Write Mean to output
-  feature.vector[paste0(prefix,"_Mean")] <- stats[4]
-  
-  #Write Max to output
-  feature.vector[paste0(prefix,"_Max")] <- stats[6]
-  
-  
-  sumheads=c('Min','1stQrt','Med','Mean','3rdQrt','Max')
-  sumindex=c(4,6)
-  #Set mean and max
-  sumheads=sumheads[sumindex]
-  
-  #Get summary stats for MEAN and MAX
-  a=summary(indata)[sumindex] # Gets the 4th and 6th elements from the summary data (mean and max)
-  #Get Mean and Max and populate
-  feats[paste0(pre,"_",sumheads)] = a
-  
-  
-  
-  
-  
-  
-  
+  # Get maximum value in series
+  feature.vector[paste0(prefix,"_Max")] <- max(EEG.channel)
+  # Get mean value (1st moment)
+  feature.vector[paste0(prefix,"_Mean")] <- moment(EEG.channel, order = 1)
+  # Get variance value (2nd moment)
+  feature.vector[paste0(prefix,"_Variance")] <- moment(EEG.channel, order = 2)
+  # Get skewness value (3rd moment)
+  feature.vector[paste0(prefix,"_Skew")] <- moment(EEG.channel, order = 3)
+  # Get kurtosis value (4th moment)
+  feature.vector[paste0(prefix,"_Kurtosis")] <- moment(EEG.channel, order = 4)
+ 
+  # Return
+  feature.vector
 }
-
-
 
 ######################################################################################
 
@@ -203,30 +187,57 @@ for (folder in patient.name) {
       #Get the number of EEG channels
       num.channel <- nrow(EEG.slice)
       
+      # Initialise a feature vector for the slice
+      feature.vector <- c()
+      
       # Loop for all channels in the EEG slice
       for (channels in 1:num.channel) {
         prefix <- paste0("Chan_",channels) # Make a prefix with channel name  
         EEG.channel <- EEG.slice[channels,]  # Get row from matrix
         
-        # Initialise a feature vector
-        feature.vector <- c()
+        # Get summary statistics and append to feature vector
+        feature.vector <- feature.statistic(EEG.channel, prefix)
         
-        # Function to get basic statistics and append to vector
-        feature.vector <- c(feature.vector, feature.statistic (EEG.channel, prefix))
-          
-          
-        } 
-        
-        }
+        # Other feature functions here
+        #feature.vector <- feature.xxxxx
+      }
       
+      
+      #RESUME HERE
+      # TO DO - set up labels for each vector
+      #Make sure loop works for entire file/all files in folder
+      #Make sure loop works for entire folder/all folders
+      #Write output to a file
+      
+      
+      #add in sequence
+      feature.vector['seq']=seq
+      
+      #Flag for what?
+      f['flag']=0
+      
+      # add in ID based on typenum list = Dog_1 = 1 etc, base ID (isub) and slice number (mi)
+      f['id']=typenums[mytype]*100000+isub*100+mi
+      #Add in slice number
+      f['si']=mi
+      
+      # Make training matrix
+      if(is.null(trainmat)) {
+        trainmat=f  # copy first row if null
+      } else {
+        trainmat=rbind(trainmat, f) #otherwise row bind to existing
+      }
+    }
+      
+      
+    }
   }
 }
 
-}
 
 ################################################################################################################################################
 
-# Generate features for array?
+# Generate features for ONE CHANNEL
 gen_features_onearray <- function (indata, pre, freqs) {
   
   #Args:  indata is a time-series of data from one channel. Can be orginal, delta1 or delta2.
@@ -264,35 +275,35 @@ gen_features_onearray <- function (indata, pre, freqs) {
   #	b=Sys.time()
   #FFT function follows
   
-  if (dolog == 1) { # Set in early parameter setup
-    myfft=log(abs(fft(indata))+1) #log of FFT - what is the difference FFT vs log FFT??
-  } else {
-    myfft=abs(fft(indata))
-  }
+  #if (dolog == 1) { # Set in early parameter setup
+  #  myfft=log(abs(fft(indata))+1) #log of FFT - what is the difference FFT vs log FFT??
+  #} else {
+  #  myfft=abs(fft(indata))
+  #}
   #Calculate mean and max of FFT series
-  a=summary(myfft)[sumindex]
+  #a=summary(myfft)[sumindex]
   #	cat(paste("After fft, time used:",format(Sys.time()-b),"\n"));flush.console()
   # Paste into feature vector
-  heads=paste0(pre,"FFT_",sumheads)
-  feats[heads]=a
+  #heads=paste0(pre,"FFT_",sumheads)
+  #feats[heads]=a
   #Calculate SD and max Freq and paste into vector
-  feats[paste0(pre,"FFT_","Sd")]=sd(myfft)
-  feats[paste0(pre,"FFT_","MaxFreq")]=freqs[which.max(myfft)]
+  #feats[paste0(pre,"FFT_","Sd")]=sd(myfft)
+  #feats[paste0(pre,"FFT_","MaxFreq")]=freqs[which.max(myfft)]
   
-  if (addFFT == 1 || addFFT == 2) { #set variable at beginning
-    if (addFFT == 2) {
-      myfft=(myfft-mean(myfft))/sd(myfft) # FFT - mean(FFT)/sd(FFT)
-    }
-    
-    myfft=myfft[1:round(FFTratio*length(myfft))] # FFT ratio set at beginning
-    myfft=down_sampling(myfft, round(length(myfft)/FFTavglen))
-    colnames=paste0(pre,"FFT_",sprintf("%02d",1:length(myfft)))
-    feats[colnames]=myfft
-  }
+  #if (addFFT == 1 || addFFT == 2) { #set variable at beginning
+  #  if (addFFT == 2) {
+  #    myfft=(myfft-mean(myfft))/sd(myfft) # FFT - mean(FFT)/sd(FFT)
+  #  }
+  #  
+  #  myfft=myfft[1:round(FFTratio*length(myfft))] # FFT ratio set at beginning
+  #  myfft=down_sampling(myfft, round(length(myfft)/FFTavglen))
+  #  colnames=paste0(pre,"FFT_",sprintf("%02d",1:length(myfft)))
+  #  feats[colnames]=myfft
+  #}
   feats
 }
 
-# Generate feature for a single windowed EEG channel
+# SPLITS SERIES INTO THREE SERIES (ORIG. DELTA1 & DELTA2)
 gen_features_oneseries <- function (indata, pre, freqs) {
   # Args: indata is a numeric sequence consisting of all the data points for a singel EEG channel 
   #       pre is channel name
@@ -324,7 +335,7 @@ gen_features_oneseries <- function (indata, pre, freqs) {
   feats
 }
 
-# Generate feature for file?
+# SPLITS FILE INTO CHANNELS
 gen_features_onefile <- function (indata, f, t) {
   
   #  Args: indata = submatrix consisting of 10 seconds of data 
@@ -361,26 +372,30 @@ gen_features_onefile <- function (indata, f, t) {
   #	uniq_postfix=grep('^chan[0-9]*FFT_[0-9][0-9]',fnames,invert=T,value=T)
   uniq_postfix=fnames
   #Regex to remove chanX references
-  uniq_postfix=unique(gsub('^chan[0-9]*','',uniq_postfix))
+  uniq_postfix=unique(gsub('^Chan_[0-9]*','',uniq_postfix))
   # Loop through labels
+  # For max, mean, skew, kurtosis or whatever feature, get the value for each channel 
   for (mypost in uniq_postfix) {
     pre=paste0("All",mypost)
-    mynames=grep(paste0('^chan[0-9]*',mypost),fnames,value=T)
+    mynames=grep(paste0('^Chan_[0-9]*',mypost),fnames,value=T)
     mydata=feats[mynames]
     sumheads=c('Min','1stQrt','Med','Mean','3rdQrt','Max')
-    sumindex=c(4,6)
+    sumindex=c(4,6) # For mean and max
     sumheads=sumheads[sumindex]
-    a=summary(mydata)[sumindex]
+    a=summary(mydata)[sumindex] #Calculate the mean and max of whatever feature....
     heads=paste0(pre, "_",sumheads)
-    feats[heads]=a
-    feats[paste0(pre,"_","Sd")]=sd(abs(mydata))
+    feature.vector[heads]=a
+    feature.vector[paste0(pre,"_","Sd")]=sd(abs(mydata)) # calculate sd of abs(value)
   }
   #	cat(paste("Total number of features after AllCh features",length(feats),format(Sys.time()-b),"\n"))
   #	flush.console()
+  # Set of features based on the average across all channels - passed to make orig, delta1, delta2....
   feats=c(feats,gen_features_oneseries (colMeans(indata), pre="chanAvg", freqs))
   #	cat(paste("Total number of features after chAvg features",length(feats),format(Sys.time()-b),"\n"))
   #	flush.console()
   mydata=indata
+  
+  #Setting up some kind of temporary matrix. for covariance calc?
   for (del in 0:2) {
     if (del != 0) {
       mydata_tmp=matrix(rep(0,length(indata)), nrow=nrow(indata))
@@ -392,6 +407,9 @@ gen_features_onefile <- function (indata, f, t) {
       mydata=indata
       pre=""
     }
+    
+    #Covariance calculation
+    #t() is transpose
     cov=cov(t(mydata))
     #		cat(paste("Size of data is:", paste(dim(mydata),collapse=','),
     #			"Size of covar is:",paste(dim(cov),collapse=','),"\n"));flush.console()
@@ -403,6 +421,8 @@ gen_features_onefile <- function (indata, f, t) {
     feats[paste0(pre,'Cov2nd')]=covarray[2]
     feats[paste0(pre,'Cov3rd')]=covarray[3]
     #		cat(paste("Before FFT", format(Sys.time()-b),"\n"));flush.console()
+    
+    # Now fft again 
     myfft=matrix(rep(0,length(mydata)),nrow=nrow(mydata))
     for (i in 1:chans) {
       if (dolog == 1) {
@@ -413,6 +433,10 @@ gen_features_onefile <- function (indata, f, t) {
     }
     #		cat(paste("After FFT", format(Sys.time()-b),"\n"));flush.console()
     pre=paste0(pre,"FFT")
+    
+    #Now covariance of FFT
+    #t() means transpose of matrix
+    
     cov=cov(t(myfft))
     #		cat(paste("Size of FFT data is:", paste(dim(myfft),collapse=','),
     #			"Size of FFT covar is:",paste(dim(cov),collapse=','),"\n"));flush.console()
@@ -492,7 +516,7 @@ for (mytype in types) {
   trainmat=NULL
   # Set timer for ??
   #begTime=Sys.time()
-  # Set counter for ??
+  # Set counter for ID of feature vector
   isub=1
   
   # Loop for all interictal files
@@ -519,15 +543,26 @@ for (mytype in types) {
     newmats=split_mat(orimat, nsplit)  # Splits matrix into a list of matrices, each 1/nsplit of the original is size
     for (mi in 1:nsplit) { # Step through the individual smaller matrices
       mymat=newmats[[mi]]  # Call the matrix by referencing the list 
+      
+      #f is the feature vector
       f=gen_features_onefile(mymat, freq, seconds/nsplit) # Call the function to make features....
+      #PHEW finally back here with a big-ass feature vector
+      
+      #add in sequence
       f['seq']=seq
+      #Flag for what?
       f['flag']=0
+      
+      # add in ID based on typenum list = Dog_1 = 1 etc, base ID (isub) and slice number (mi)
       f['id']=typenums[mytype]*100000+isub*100+mi
+      #Add in slice number
       f['si']=mi
+      
+      # Make training matrix
       if(is.null(trainmat)) {
-        trainmat=f
+        trainmat=f  # copy first row if null
       } else {
-        trainmat=rbind(trainmat, f)
+        trainmat=rbind(trainmat, f) #otherwise row bind to existing
       }
     }
     endTime=Sys.time()
@@ -664,6 +699,9 @@ for (mytype in types) {
   if (addFFT>=1) {
     freq=paste0(freq,"FFT",addFFT,"-",FFTratio)
   }
+  
+  #Write output to zip file eg "Dog_1_Split_10_Freq_400.RData"
+  
   filename=paste0(datadir,"/",mytype,"Split",nsplit,"_Freq",freq,ifelse(dolog==1,paste0("Log",dolog),""),".RData")
   summary_df=summary_df[!is.na(summary_df$fname),]
   if (mytype %in% c("Dog_1","Dog_2","Dog_3","Dog_4") && do_holdout) {
@@ -677,7 +715,9 @@ for (mytype in types) {
   flush.console()
 }
 
+#Get rid of NA
 summary_df=summary_df[!is.na(summary_df$fname),]
+
 
 totaltime=(Sys.time()-begTime)
 print(tail(summary_df, n=20))
