@@ -3,8 +3,8 @@ Functional blocks of code:
 Main          - main code sequence                     - SeizurePrediction.R        - in progress
 
 Preprocessing - data preparation                       - RenameTestData.R           - complete
-              - data error checking                    - ErrorCheckData             - complete
-              - data metadata/summary                  - GetMetaData.R              - complete
+              - data error checking                    - IntegrityCheck.R           - complete
+              - data metadata/summary                  - GetMetadata.R              - complete
 
 Features      - navigating files and channels          - MakeFeature.R  
               - windowing                              - MakeFeature.R  
@@ -33,9 +33,6 @@ Not clear if resampling is necessary. Patient_1 and Patient_2 data has higher sa
 
 You need to decompose the data files. Dataset -> File -> Windowed Files -> EEG Channel - Time series (might make a good figure?)  
 
-
-Wei Wu code mentions feature generation that does not use windowing - identify and remove ?
-
 To Do
 Print detailed project plan and platicise
 Put milestones into Google calendar
@@ -44,7 +41,7 @@ Figure out how to plot EEG. EEGkit may only work on a EDF. Matt Craddock new lib
 is not on CRAN and only has install instructions for Bash.
 Weekly progress report
 Investigate R signal processing packages
-Read through Kaggle discussions for R coding ideas
+Read through Kaggle detection 2014 discussions for R coding ideas
 
 Dataset size
 Dog1 - 1006 files

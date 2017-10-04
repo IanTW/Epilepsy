@@ -85,13 +85,10 @@ meta.data.results <- data.frame(filename = log.array, seconds = log.array,
                                 samples = log.array)
 
 # Loop for all patients' folders
-for (folder in patient.name) {
+for (folder in folder.list) {
   
   # Set working directory here
-  # This can be used to check the full dataset...
-  data.dir <- paste0(full.dataset.dir, folder)
-  # ...or it can be used to check the sample data
-  # data.dir <- paste0(sample.dataset.dir, folder)
+  data.dir <- paste0(parent.dir, folder)
   setwd(data.dir)
   
   # Get list of files for processing

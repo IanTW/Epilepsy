@@ -1,5 +1,5 @@
 ######################################################################################
-# File Name: RenameTestData.R                                                        #
+# File Name: RenameData.R                                                        #
 # Purpose: Relabel 'test' data files                                                  #
 #                                                                                    #
 # Author: Ian Watson                                                                 #
@@ -111,7 +111,7 @@ preict.files <- as.character(preict.files$clip)
 preict.files <- as.list(preict.files)
 
 # Loop for all patient folder 
-for (folder in patient.name){   
+for (folder in folder.list){   
         
         # Set working directory here
         data.dir <- paste0(parent.dir, folder, "/Test_Data")
@@ -122,22 +122,22 @@ for (folder in patient.name){
           file.rename(myfiles, paste0("Preict_", myfiles))
           }
         # Get files with Preict prefix
-        myfilelist <- list.files(data.dir, pattern = "[P][r]")
+        list.of.files <- list.files(data.dir, pattern = "[P][r]")
         # Files are labelled as preictal with an index of 2000 and up
         # Calculate the number of files
-        numfile <- length(myfilelist) + 1999
+        numfile <- length(list.of.files) + 1999
         # Rename as preictal ('to' and 'from' in rename command must match)
-        file.rename(myfilelist, paste0(mytype,
+        file.rename(list.of.files, paste0(mytype,
                                        "_preictal_segment_",
                                        2000:numfile, ".mat"))
         
         # Get all other files and label interictal
-        myfilelist <- list.files(data.dir, pattern = "[t][e][s]")
+        list.of.files <- list.files(data.dir, pattern = "[t][e][s]")
         # Files are labelled as interictal with an index of 2000 and up
         # Calculate the number of files
-        numfile <- length(myfilelist) + 1999
+        numfile <- length(list.of.files) + 1999
         # Rename as interictal ('to' and 'from' in rename command must match)
-        file.rename(myfilelist, paste0(mytype,
+        file.rename(list.of.files, paste0(mytype,
                                        "_interictal_segment_",
                                        2000:numfile, ".mat"))
 }

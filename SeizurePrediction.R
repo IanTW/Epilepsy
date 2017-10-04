@@ -129,33 +129,41 @@ read.EEG.file <- function (filename) {
   EEG.file
 }
 
-############################### SET WORKING DIRECTORY ################################
-
-# Code is developed on several machines and location of data files may vary
-# Get working directory for code and data samples
-parent.dir <- getwd()
-
-# Set working directory for sample dataset
-sample.dataset.dir <- paste0(parent.dir, '/Sample Data/')
-
-# Set working directory for full dataset (Drive letter will vary across machines)
-full.dataset.dir <- paste0('H:', '/Data/')    # Change drive letter as needed
-
-################################# SET INITIAL VARIABLES ##############################
+############################### SET PROJECT OPTIONS ##################################
 
 # Folder structures with patient EEG data files
-patient.name = c('Dog_1','Dog_2','Dog_3','Dog_4','Dog_5','Patient_1','Patient_2')
+folder.list = c('Dog_1','Dog_2','Dog_3','Dog_4','Dog_5','Patient_1','Patient_2')
 # Endode data file categories into a numerical annotation
 patient.num <- c('Dog_1' = 1, 'Dog_2' = 2, 'Dog_3' = 3,
                  'Dog_4' = 4, 'Dog_5' = 5, 'Patient_1' = 6,
                  'Patient_2' = 7)
 
-############################# PREPROCESSING - LABELLING FILES ########################
+# Set this to choose which set of data to work on
+# Sample data, set sample = 1; full data, set sample = 0
+sample.data <- 1
+
+# Code is developed on several machines and location of data files may vary
+# Get working directory for code and data samples
+parent.dir <- getwd()
+
+if (sample.data == 1){
+  
+  # Set working directory for sample dataset
+  parent.dir <- paste0(parent.dir, '/Sample Data/')
+} else  { 
+  # Set working directory for full dataset (Drive letter may vary across machines)
+  parent.dir <- paste0('H:', '/Data/')    # Change drive letter as needed
+}
+
+#Set window size for file splitting (seconds)
+windowsize <- 60
+
+########################### PREPROCESSING - LABELLING FILES ##########################
 
 # Label the test segments with the correct labels 
 # Required initially and when rebuilding the dataset
 
-# source ("RenameTestData.R")
+# source ("RenameData.R")
 
 ########################## PREPROCESSING - INTEGRITY CHECK FILES #####################
 
@@ -173,14 +181,14 @@ patient.num <- c('Dog_1' = 1, 'Dog_2' = 2, 'Dog_3' = 3,
 
 # Results are saved to metadata.rda
 
-################################## FEATURE ENGINEERING ###############################
+################################ FEATURE ENGINEERING #################################
 
 # Construct EEG features and output a feature vector for the classifiers
-# Will be run each time features are optimised
+# Will be run each time features are generated or optimised
 
 # source ("MakeFeature.R")
 
-################################ SUPPORT VECTOR MACHINE ##############################
+############################## SUPPORT VECTOR MACHINE ################################
 
 
 

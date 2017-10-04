@@ -72,7 +72,7 @@
 # This file should be called from the main code file SeizurePrediction.R
 
 # Function to window a multichannel EEG time series
-windowing <- function (eeg.time.series, num.split){
+window.matrix <- function (eeg.time.series, num.split){
   # Windows a single EEG time series matrix into a list of windowed matrices.
   #
   # Args:
@@ -101,17 +101,14 @@ windowing <- function (eeg.time.series, num.split){
 
 ######################################################################################
 
-# Set variables
 
-#Set window size for file splitting (seconds)
-windowsize <- 10
 
 # Loop for all folders with patient data
 for (folder in patient.name) {
   
   # Set working directory here
   # This can be used on the full dataset...
-  data.dir <- paste0(full.dataset.dir, folder)
+  data.dir <- paste0(parent.dir, folder)
   # ...or it can be used on the sample data
   # data.dir <- paste0(sample.dataset.dir, folder)
   setwd(data.dir)
@@ -140,16 +137,26 @@ for (folder in patient.name) {
     # Window the time series data
     # Calculate the required number of splits
     num.split <- seconds/windowsize  # The total length in seconds / size of window
-    
     # Create a set of windowed data matrices
-    EEG.window <- windowing (EEG.data, num.split)  # Splits matrix into a list of matrices, each 1/nsplit of the original is size
+    EEG.window <- window.matrix (EEG.data, num.split)  # Splits matrix into a list of matrices, each 1/nsplit of the original is size
     
     #RESUME HERE
     
+    # Loop for all slices
+    for (slices in 1:nsplit) { # Step through the individual smaller matrices)
     
-    for (mi in 1:nsplit) { # Step through the individual smaller matrices)
-    
-    
+      # Get a slice from the windowed EEG data
+      EEG.slice <- EEG.window[[slices]]
+      #Get the number of EEG channels
+      num.channel <- nrow(EEG.slice)
+      
+      #Loop for all channels
+      for (channels in 1:num.channel) {
+        prename=paste0("chan",i) # make a channel name 
+        EEG.channel <- EEG.slice[[channels]] #Wrong!
+        
+        }
+      
   }
 }
 
