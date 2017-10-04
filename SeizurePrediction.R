@@ -139,7 +139,7 @@ patient.num <- c('Dog_1' = 1, 'Dog_2' = 2, 'Dog_3' = 3,
                  'Patient_2' = 7)
 
 # Set this to choose which set of data to work on
-# Sample data, set sample = 1; full data, set sample = 0
+# Sample data, set = 1; full data, set = 0
 sample.data <- 1
 
 # Code is developed on several machines and location of data files may vary

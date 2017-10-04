@@ -71,12 +71,68 @@
 
 # This file should be called from the main code file SeizurePrediction.R
 
+######################################################################################
+
+#Variables for development to be deleted
+# variables for manual looping 
+
+folder <- "Dog_1"
+filename <- "Dog_1_interictal_segment_0476.mat"
+slices <- 1
+channels <- 1
+prefix <- "Chan_1"
+
+######################################################################################
+
+feature.statistic <- function (EEG.channel, prefix){
+  # Calculates summary statistics for a single windowed EEG channel
+  #
+  # Args:
+  #   feature.vector: Object containing extracted features
+  #   EEG.channel: EEG channel containing times series data
+  #   prefix: label for identifying channel number
+  # Returns:
+  #   feature.vector: extracted features
+  #
+  
+  # Get summary statistics
+  stats <- summary(EEG.channel) 
+  
+  # Write Mean to output
+  feature.vector[paste0(prefix,"_Mean")] <- stats[4]
+  
+  #Write Max to output
+  feature.vector[paste0(prefix,"_Max")] <- stats[6]
+  
+  
+  sumheads=c('Min','1stQrt','Med','Mean','3rdQrt','Max')
+  sumindex=c(4,6)
+  #Set mean and max
+  sumheads=sumheads[sumindex]
+  
+  #Get summary stats for MEAN and MAX
+  a=summary(indata)[sumindex] # Gets the 4th and 6th elements from the summary data (mean and max)
+  #Get Mean and Max and populate
+  feats[paste0(pre,"_",sumheads)] = a
+  
+  
+  
+  
+  
+  
+  
+}
+
+
+
+######################################################################################
+
 # Function to window a multichannel EEG time series
-window.matrix <- function (eeg.time.series, num.split){
+window.matrix <- function (EEG.time.series, num.split){
   # Windows a single EEG time series matrix into a list of windowed matrices.
   #
   # Args:
-  #   eeg.time.series: Multichannel EEG data in a matrix, each row is an EEG channel
+  #   EEG.time.series: Multichannel EEG data in a matrix; each row is an EEG channel
   #   num.split: The number of splits to perform
   # Returns:
   #   a list of EEG matrices. The no. of elements in the list equals num.split
@@ -88,11 +144,11 @@ window.matrix <- function (eeg.time.series, num.split){
   
   # Calculate the total samples for each windowed matrix
   # Total data samples in time series / number of splits
-  number.samples <- ncol(eeg.time.series) / num.split 
+  number.samples <- ncol(EEG.time.series) / num.split 
   # Make a list of windowed matrices
   # Loop for each split
   for (i in 1:num.split) {  # Create a list of matrices
-    window.eeg[[i]] <- eeg.time.series[,((i-1)*number.samples+1):
+    window.eeg[[i]] <- EEG.time.series[,((i-1)*number.samples+1):
                                          (i*number.samples)] 
   } 
   # return
@@ -100,8 +156,6 @@ window.matrix <- function (eeg.time.series, num.split){
 }
 
 ######################################################################################
-
-
 
 # Loop for all folders with patient data
 for (folder in patient.name) {
@@ -138,22 +192,30 @@ for (folder in patient.name) {
     # Calculate the required number of splits
     num.split <- seconds/windowsize  # The total length in seconds / size of window
     # Create a set of windowed data matrices
-    EEG.window <- window.matrix (EEG.data, num.split)  # Splits matrix into a list of matrices, each 1/nsplit of the original is size
+    # Splits matrix into a list of matrices, each 1/nsplit of the original is size
+    EEG.window <- window.matrix (EEG.data, num.split)  
     
-    #RESUME HERE
-    
-    # Loop for all slices
+    # Loop for all slices in the windowed data
     for (slices in 1:nsplit) { # Step through the individual smaller matrices)
     
-      # Get a slice from the windowed EEG data
+      # Get a slice from the windowed data
       EEG.slice <- EEG.window[[slices]]
       #Get the number of EEG channels
       num.channel <- nrow(EEG.slice)
       
-      #Loop for all channels
+      # Loop for all channels in the EEG slice
       for (channels in 1:num.channel) {
-        prename=paste0("chan",i) # make a channel name 
-        EEG.channel <- EEG.slice[[channels]] #Wrong!
+        prefix <- paste0("Chan_",channels) # Make a prefix with channel name  
+        EEG.channel <- EEG.slice[channels,]  # Get row from matrix
+        
+        # Initialise a feature vector
+        feature.vector <- c()
+        
+        # Function to get basic statistics and append to vector
+        feature.vector <- c(feature.vector, feature.statistic (EEG.channel, prefix))
+          
+          
+        } 
         
         }
       

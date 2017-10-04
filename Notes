@@ -2,14 +2,14 @@ Functional blocks of code:
 
 Main          - main code sequence                     - SeizurePrediction.R        - in progress
 
-Preprocessing - data preparation                       - RenameTestData.R           - complete
+Preprocessing - data preparation                       - RenameData.R               - complete
               - data error checking                    - IntegrityCheck.R           - complete
               - data metadata/summary                  - GetMetadata.R              - complete
 
-Features      - navigating files and channels          - MakeFeature.R  
-              - windowing                              - MakeFeature.R  
-              - engineering                            - MakeFeature.R              - development              
-              - dimensionality reduction
+Features      - navigating files and channels          - MakeFeature.R              - in development
+              - windowing                              - MakeFeature.R              - complete  
+              - engineering                            - MakeFeature.R              - in development              
+              - dimensionality reduction               
 
 Algorithm(SVM)- training
               - testing
@@ -66,7 +66,7 @@ TSA
 
 Package e1071 for SVM
 Package erpR for ERP may have some function?
-
+package moments for statistical moments
 
 
 Progress report
@@ -76,3 +76,5 @@ Sunday 6 hours coding
 There are two branches for the ESIA code - do you have the latest?
 
 Use .ts time series class in R for EEG 
+
+
