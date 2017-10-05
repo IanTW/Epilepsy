@@ -112,14 +112,14 @@ read.EEG.file <- function (filename) {
   # EEG length - element 2
   EEG.file[["seconds"]] <- as.numeric(a[[1]][[2]])
   # Sample rate - element 3
-  EEG.file[["freq"]] <- as.numeric(a[[1]][[3]])
+  EEG.file[["frequency"]] <- as.numeric(a[[1]][[3]])
   # EEG electrode labels 
   EEG.file[["labels"]] <- unlist(a[[1]][[4]])
   # EEG sequence number if available or set to -1
   if (length(a[[1]]) > 4) {
-    EEG.file[["seq"]] <- as.numeric(a[[1]][[5]])
+    EEG.file[["sequence"]] <- as.numeric(a[[1]][[5]])
   } else {
-    EEG.file[["seq"]] <- -1
+    EEG.file[["sequence"]] <- -1
   }
   # Remove object
   rm(a)
@@ -186,6 +186,8 @@ windowsize <- 60
 # Construct EEG features and output a feature vector for the classifiers
 # Will be run each time features are generated or optimised
 
+# Initialise matrix for feature vectors
+feature.vector.matrix  <- NULL
 # source ("MakeFeature.R")
 
 ############################## SUPPORT VECTOR MACHINE ################################
