@@ -6,7 +6,7 @@ Preprocessing - data preparation                       - RenameData.R           
               - data error checking                    - IntegrityCheck.R           - complete
               - data metadata/summary                  - GetMetadata.R              - complete
 
-Features      - navigating files and channels          - MakeFeature.R              - in development
+Features      - navigating files and channels          - MakeFeature.R              - complete
               - windowing                              - MakeFeature.R              - complete  
               - engineering                            - MakeFeature.R              - in development              
               - dimensionality reduction               
@@ -74,7 +74,10 @@ There are two branches for the ESIA code - do you have the latest?
 
 Use .ts time series class in R for EEG 
 
-Going to need to downsample Patient files to same rate as Dog files. The file are longer ? so will generate different size feature vectors
+Going to need to downsample Patient files to same rate as Dog files?
+
+Some files have 15 and 24 channels = these will give differnt length feature vectors.....
+
 
 List of wei wu features
     Per channel and per series (orig, Delta1 and Delta2, FFT(orig), FFT(D1), FFT(D2))

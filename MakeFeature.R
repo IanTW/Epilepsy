@@ -220,6 +220,9 @@ for (folder in folder.list) {
   }  # End loop for files
 }  # End loop for folder
 
+# Drop rownames from results
+rownames(feature.vector.matrix) <- c()
+
 
 # ################################################################################################################################################
 # 
