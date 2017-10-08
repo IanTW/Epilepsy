@@ -165,14 +165,14 @@ windowsize <- 60
 
 # source ("RenameData.R")
 
-########################## PREPROCESSING - INTEGRITY CHECK FILES #####################
+######################## PREPROCESSING - INTEGRITY CHECK FILES #######################
 
 # Check each data file by reading the data into a matrix
 # Recommended after any data file migrations
 
 # source ("IntegrityCheck.R")
 
-############################## PREPROCESSING - GET METADATA ##########################
+############################ PREPROCESSING - GET METADATA ############################
 
 # Read in the data files and create a summary table of metadata
 # Required initially and when rebuilding the dataset
@@ -188,7 +188,8 @@ windowsize <- 60
 
 # Initialise matrix for feature vectors
 feature.vector.matrix  <- NULL
-# source ("MakeFeature.R")
+
+source ("MakeFeature.R")
 
 ############################## SUPPORT VECTOR MACHINE ################################
 

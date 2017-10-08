@@ -35,7 +35,6 @@ You need to decompose the data files. Dataset -> File -> Windowed Files -> EEG C
 
 To Do
 Print detailed project plan and platicise
-Put milestones into Google calendar
 Decide on a train/test/holdout split
 Figure out how to plot EEG. EEGkit may only work on a EDF. Matt Craddock new library
 is not on CRAN and only has install instructions for Bash.
@@ -65,10 +64,6 @@ TSA
 
 Package e1071 for SVM
 Package erpR for ERP may have some function?
-package moments for statistical moments
-
-Progress report
-Sunday 6 hours coding
 
 There are two branches for the ESIA code - do you have the latest?
 
@@ -79,22 +74,25 @@ Going to need to downsample Patient files to same rate as Dog files?
 Some files have 15 and 24 channels = these will give differnt length feature vectors.....
 
 
-List of wei wu features
-    Per channel and per series (orig, Delta1 and Delta2, FFT(orig), FFT(D1), FFT(D2))
-    Max, mean, SD, max Freq (for FFT)
-
-    Per slice (across all channels and all features)
-    Max, mean, abs(Standard Dev)
-
-    All features averaged across all channels and then again made into Orig, Delta1, Delta2, FFT etc.
-    Max, mean, SD etc as per ind. channel
-    
-    Covariance matrix of original -> mean, max, sd, 2nd max, 3rd max (what is this?)
-    covariance of FFT matrix
     
 
+Code to do 
+Sliding window
+Normalisation function
+Cross validation 
+Derivative function
+Channel averaging
+Downsampling
+Filter out files with too few/many channels (randomly pick 16?)
 
+Report to do
+References - check DOI has been added in Zotero before export
+Remove URLs where DOI is available
 
+Questions for Brendan
+Can feature vectors be different lengths?
+Can I pad with zeroes or an average? How do I treat missing data?
+Can I randomly pick 16 channels from 24?
 
 
 

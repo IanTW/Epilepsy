@@ -1,3 +1,19 @@
+
+List of wei wu features
+    Per channel and per series (orig, Delta1 and Delta2, FFT(orig), FFT(D1), FFT(D2))
+    Max, mean, SD, max Freq (for FFT)
+
+    Per slice (across all channels and all features)
+    Max, mean, abs(Standard Dev)
+
+    All features averaged across all channels and then again made into Orig, Delta1, Delta2, FFT etc.
+    Max, mean, SD etc as per ind. channel
+    
+    Covariance matrix of original -> mean, max, sd, 2nd max, 3rd max (what is this?)
+    covariance of FFT matrix
+
+
+
 # Kaggle-SeizureDetection-Official
 My R code for Kaggle Competition Seizure Detection
 
