@@ -213,10 +213,8 @@ impute.missing <- function (feature.vector){}
 ######################################################################################
 
 # Function to normalise feature.vector
-normalise.feature <- function (feature.vector){
-  
-  
-}
+#normalise.feature <- function (feature.vector){
+#}
 
 ######################################################################################
 
@@ -224,14 +222,14 @@ normalise.feature <- function (feature.vector){
 for (folder in folder.list) {
   
   # Set working directory
-  data.dir <- paste0(parent.dir, folder)
-  setwd(data.dir)
+  patient.dir <- paste0(data.dir, folder)
+  setwd(patient.dir)
   
   # Initialise matrix for feature vectors
   feature.vector.matrix  <- NULL
   
   # Get list of files for processing
-  list.of.files <- dir(data.dir, "*.mat")
+  list.of.files <- dir(patient.dir, "*.mat")
   
   # Loop for all files in the patient folder
   for (filename in list.of.files) {
@@ -298,6 +296,12 @@ for (folder in folder.list) {
       feature.vector['ID'] <- paste0(filename)
       # Add in slice number
       feature.vector['SLICE'] <- slices
+      # Add in class label
+      if(grepl("inter", feature.vector['ID'])){
+        feature.vector['CLASS'] <- "Interictal"
+      } else {
+        feature.vector['CLASS'] <- "Preictal"
+      }
       
       # Make training matrix
       if(is.null(feature.vector.matrix)) {  # Copy first row if null
@@ -312,7 +316,7 @@ for (folder in folder.list) {
   rownames(feature.vector.matrix) <- c()
   
   # Normalise each feature
-  feature.vector.matrix <- normalise.feature(feature.vector.matrix)
+  #feature.vector.matrix <- normalise.feature(feature.vector.matrix)
   
   # Save results as .rda object
   # Set save location

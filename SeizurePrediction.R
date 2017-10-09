@@ -76,7 +76,8 @@
 list.of.packages <- c("R.matlab",  # Handling *.mat files
                       "eegkit",    # Visualising EEG
                       "TSA",       # Time series tools
-                      "moments")   # Statistical moments
+                      "moments",   # Statistical moments
+                      "caret")     # Data partitioning
 
 # Create list of required new packages
 new.packages <- list.of.packages[!(list.of.packages %in% 
@@ -148,18 +149,23 @@ sample.data <- 1
 # Get working directory for code and data samples
 parent.dir <- getwd()
 
+# For labels for feature vectors
+feature.folder <- "Set_1"
+# Set labels for experimental run
+results.folder <- "Run_1"
+
 if (sample.data == 1){
-  
   # Set subdirectory for feature vector results
-  features.dir <- paste0(parent.dir, '/Features/')
+  features.dir <- paste0(parent.dir, '/Features/', feature.folder)
+  # Create folder
+  dir.create(path = features.dir, showWarnings = TRUE)
   # Set working directory for sample dataset
-  parent.dir <- paste0(parent.dir, '/Sample Data/')
+  data.dir <- paste0(parent.dir, '/Sample Data/')
 } else  { 
   # Set subdirectory for feature vector results
   features.dir <- paste0('H:', '/Features/')  # Change drive letter as needed
   # Set working directory for full dataset (Drive letter may vary across machines)
-  parent.dir <- paste0('H:', '/Data/')  # Change drive letter as needed
-
+  data.dir <- paste0('H:', '/Data/')  # Change drive letter as needed
 }
 
 # Set this to choose overlapping or non-overlapping windows
@@ -198,11 +204,33 @@ windowsize <- 60
 # Construct EEG features and output a feature vector for the classifiers
 # Will be run each time features are generated or optimised
 
-source ("MakeFeature.R")
+ source ("MakeFeature.R")
 
 # Results are saved to a 'Features' folder, one matrix per patient
 
-############################## SUPPORT VECTOR MACHINE ################################
+################################ DATA PARTITIONING ###################################
+
+# Get all feature vectors and combine (generalised model)
+# Set path to feature set
+feature.folder <- "Set_1"
+feature.folder.path <- paste0(parent.dir, '/Features/', feature.folder)
+
+# Get list of files
+list.of.feature.files <- dir(feature.folder.path, "*.rda")
+
+# Initialise object
+combined.feature.vector <- c()
+
+# Loop for all files containing feature vectors 
+for (feature.file in list.of.feature.files){
+  load(feature.file)  # Load file
+  
+  if(is.null(combined.feature.vector)) {
+    combined.feature.vector <- feature.vector.matrix  # First file do not rowbind
+  } else { combined.feature.vector <- rbind(combined.feature.vector,
+                                            feature.vector.matrix)
+  }
+}
 
 
 
@@ -212,44 +240,4 @@ source ("MakeFeature.R")
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# # Get list of interictal files
-# interfiles=dir(datadir, ".*_interictal_segment_.*.mat")
-# # Get list of preicatal files
-# prefiles=dir(datadir, ".*_preictal_segment_.*.mat")
-
-# 
-# 
-# 
-# loadMat = function(filename)
-# {
-#   library(R.matlab)
-#   rawData = readMat(filename)
-#   data = rawData[[1]]
-#   matrix = do.call(rbind, data['data',,])
-#   totalSec = unlist(data['data.length.sec',,])
-#   sequence = unlist(data['sequence',,])
-#   measures = as.data.frame(t(matrix))
-#   measures
-# }
-# 
-# a <-loadMat(filename)
-# 
-
-#FFT plot using TSA package
-
-#periodogram(indata,log='yes',plot=TRUE,ylab="Periodogram", xlab="Frequency") 
 

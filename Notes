@@ -11,35 +11,37 @@ Features      - navigating files and channels          - MakeFeature.R          
               - engineering                            - MakeFeature.R              - in development              
               - dimensionality reduction               
 
-Algorithm(SVM)- training
-              - testing
-              - parameter tuning
+Validation    - Cross fold validation
 
 Algorithm(SVM)- training
               - testing
               - parameter tuning
 
-Performance   - evaluation
+Algorithm(SVM)- training
+              - testing
+              - parameter tuning
+
+Results       - evaluation
               - comparison
+
 
 Graphics      - plots
               - tables?
 
-Notes
 
-.mat file is a list of lists
+Keep in mind this is a classification comparison!!!!! Experiments should focus on this!!!!!!!!!!!!!
+Experimental Options:
 
-Not clear if resampling is necessary. Patient_1 and Patient_2 data has higher sample rate (I believe). This can be a part of the different studies that are undertaken - variations on sample rate as part of data preparation to see if different results are obtained. Also vary window size of data.
-
-You need to decompose the data files. Dataset -> File -> Windowed Files -> EEG Channel - Time series (might make a good figure?)  
+Downsampling
+Window size
+Number of folds
+Normalisation or Standardisation
+Specific or non-specific [Train and test on Dog_1. Then see if Dog_1 can be used to predict others. Repeat for all patients.]
 
 To Do
-Print detailed project plan and platicise
-Decide on a train/test/holdout split
 Figure out how to plot EEG. EEGkit may only work on a EDF. Matt Craddock new library
 is not on CRAN and only has install instructions for Bash.
 Weekly progress report
-Investigate R signal processing packages
 Read through Kaggle detection 2014 discussions for R coding ideas
 
 Dataset size
@@ -52,38 +54,25 @@ Pat1 - 263 files
 Pat2 - 210 files
 Total 7999
 
-Experimental option - specific or non-specific. Train and test on Dog_1. Then see if Dog_1 can be used to predict others. Repeat for all patients.
 
 Reference to requirement to perform FFT on diff of a series
 https://stackoverflow.com/questions/14010605/fast-fourier-transform-in-r
 
 Signal processing packages:
-
 Spectral
 TSA
-
 Package e1071 for SVM
 Package erpR for ERP may have some function?
 
 There are two branches for the ESIA code - do you have the latest?
 
-Use .ts time series class in R for EEG 
-
-Going to need to downsample Patient files to same rate as Dog files?
-
-Some files have 15 and 24 channels = these will give differnt length feature vectors.....
-
-
-    
+Use .ts time series class in R for EEG ?
 
 Code to do 
-Sliding window
-Normalisation function
+Normalisation function - few options (do scale norm and standardisation). Included in caret train()...jus sayin
 Cross validation 
-Derivative function
-Channel averaging
-Downsampling
-Filter out files with too few/many channels (randomly pick 16?)
+FFT feature extraction
+Channel averaging across all features
 
 Report to do
 References - check DOI has been added in Zotero before export
@@ -95,6 +84,22 @@ Can I pad with zeroes or an average? How do I treat missing data?
 Can I randomly pick 16 channels from 24?
 Do I normalise the feature vector? Is it better to use Z-scores
 How do I classify the slices (simple majority?)
+Should I take absolute values for time series? The mean is around zero..
+
+
+Notes on Standard scores
+If you want to use standard scores there is an assumption of a normal dist.
+Normal distribution can be checked using Shapiro Wilks test 
+shapiro.test(x) but limited to 5000 points..
+You can also do a QQplot
+qqnorm(x) versus a normal dist using qqnorm(rnorm(1000))
+5000 points of EEG channel is not normally distributed.
+See Kelleher textbook pp.93-94
 
 
 
+
+
+#FFT plot using TSA package
+
+#periodogram(indata,log='yes',plot=TRUE,ylab="Periodogram", xlab="Frequency") 
