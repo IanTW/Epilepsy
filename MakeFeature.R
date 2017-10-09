@@ -213,7 +213,10 @@ impute.missing <- function (feature.vector){}
 ######################################################################################
 
 # Function to normalise feature.vector
-normalise.feature <- function (feature.vector){}
+normalise.feature <- function (feature.vector){
+  
+  
+}
 
 ######################################################################################
 
