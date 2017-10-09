@@ -93,6 +93,8 @@ Questions for Brendan
 Can feature vectors be different lengths?
 Can I pad with zeroes or an average? How do I treat missing data?
 Can I randomly pick 16 channels from 24?
+Do I normalise the feature vector? Is it better to use Z-scores
+How do I classify the slices (simple majority?)
 
 
 

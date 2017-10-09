@@ -73,14 +73,13 @@
 
 ######################################################################################
 
-#Variables for development to be deleted
-# variables for manual looping 
+# Variables for development to be deleted
 
-#folder <- "Dog_1"
-#filename <- "Dog_1_interictal_segment_0476.mat"
-#slices <- 1
-#channels <- 1
-#prefix <- "Chan_1"
+# folder <- "Dog_5"
+# filename <- "Dog_5_interictal_segment_0446.mat"
+# slices <- 1
+# channels <- 1
+# prefix <- "Chan_1"
 
 ######################################################################################
 
@@ -112,45 +111,121 @@ feature.statistic <- function (EEG.channel, prefix){
 
 ######################################################################################
 
-# Function to window a multichannel EEG time series
-window.matrix <- function (EEG.time.series, num.split){
+# Function to window a multichannel EEG time series (non-overlapping)
+window.matrix <- function (EEG.data, num.split){
   # Windows a single EEG time series matrix into a list of windowed matrices.
+  # The windows are non-overlapping.
   #
   # Args:
-  #   EEG.time.series: Multichannel EEG data in a matrix; each row is an EEG channel
+  #   EEG.data: Multichannel EEG data in a matrix; each row is an EEG channel
   #   num.split: The number of splits to perform
   # Returns:
-  #   a list of EEG matrices. The no. of elements in the list equals num.split
+  #   EEG.window: List of EEG matrices.
+  #   The no. of elements in the list equals num.split
   #   The first element contains data from 0 to windowsize (seconds). The second
   #   element contains data from windowsize to 2*windowsize (and so on). 
   
   # Initialise a list
-  window.eeg <- list()
+  EEG.window <- list()
   
   # Calculate the total samples for each windowed matrix
   # Total data samples in time series / number of splits
-  number.samples <- ncol(EEG.time.series) / num.split 
+  number.samples <- ncol(EEG.data) / num.split 
   # Make a list of windowed matrices
   # Loop for each split
   for (i in 1:num.split) {  # Create a list of matrices
-    window.eeg[[i]] <- EEG.time.series[,((i-1)*number.samples+1):
+    EEG.window[[i]] <- EEG.data[,((i-1)*number.samples+1):
                                          (i*number.samples)] 
   } 
-  # return
-  window.eeg
+  # Return
+  EEG.window
 }
+
+######################################################################################
+
+# Function to window a multichannel EEG time series (overlapping)
+overlap.window.matrix <- function (EEG.data, num.split){
+  # Windows a single EEG time series matrix into a list of windowed matrices.
+  # The windows are overlapping by 50%
+  #
+  # Args:
+  #   EEG.data: Multichannel EEG data in a matrix; each row is an EEG channel
+  #   num.split: The number of splits to perform
+  #   overlap: The percentage overlap
+  # Returns:
+  #   EEG.window: List of EEG matrices.
+  #   The no. of elements in the list equals (num.split * 2) - 1
+  #   The first element contains data from 0 to windowsize (seconds). The second
+  #   element contains data from windowsize to 2*windowsize (and so on). 
+  
+  # Initialise a list
+  EEG.window <- list()
+  
+  # Calculate the total samples for each windowed matrix
+  # Total data samples in time series / number of splits
+  number.samples <- ncol(EEG.data) / num.split
+  
+  #Calculate total splits (50% overlap is 2N-1)
+  total.splits <- num.split*2 - 1
+  
+  # Make a list of windowed overlapping matrices
+  # Loop for each split
+  for (i in 1:total.splits) {  # Create a list of matrices
+    EEG.window[[i]] <- EEG.data[,((i-1)*number.samples/2+1):
+                                         ((i-1)*number.samples/2 + number.samples)] 
+  } 
+  # Return
+  EEG.window
+}
+
+######################################################################################
+
+# Function to get a standard number of EEG channels
+standard.EEG.data <- function (EEG.data, chan){
+  # Standardise the number of channels to 16. Some files have 15 or 24 channels.
+  #
+  # Args:
+  #   EEG.data: Multichannel EEG data in a matrix; each row is an EEG channel
+  #   chan: The number of EEG channels in the file
+  #   
+  # Returns:
+  #   EEG.data: Multichannel EEG data in a matrix with 16 channels total
+  
+  # For the case of 15 channels, insert a row of zeroes
+  if (chan == 15){
+    EEG.data <- rbind(EEG.data, 0)
+  
+  # In the case of 24 channels, randomly select 16    
+  } else if (chan == 24){
+    set.seed()  # For reproducability
+    EEG.data <- EEG.data[sample(nrow(EEG.data), 16), ]
+  }
+
+  # Return
+  EEG.data
+}
+
+######################################################################################
+
+# Function to impute missing channel data
+impute.missing <- function (feature.vector){}
+
+######################################################################################
+
+# Function to normalise feature.vector
+normalise.feature <- function (feature.vector){}
 
 ######################################################################################
 
 # Loop for all folders with patient data
 for (folder in folder.list) {
   
-  # Set working directory here
-  # This can be used on the full dataset...
+  # Set working directory
   data.dir <- paste0(parent.dir, folder)
-  # ...or it can be used on the sample data
-  # data.dir <- paste0(sample.dataset.dir, folder)
   setwd(data.dir)
+  
+  # Initialise matrix for feature vectors
+  feature.vector.matrix  <- NULL
   
   # Get list of files for processing
   list.of.files <- dir(data.dir, "*.mat")
@@ -168,33 +243,44 @@ for (folder in folder.list) {
     seconds <- EEG.file[["seconds"]]
     # Get sample frequency
     frequency <- EEG.file[["frequency"]]
+    # Get number of channels
+    chan <- EEG.file[["channel"]]
     # Get sequence number of file
     sequence <- EEG.file[["sequence"]]
     # Get electrode labels
     labels <- EEG.file[["labels"]]
     
+    # Function to get a total of 16 channels
+    EEG.data <- standard.EEG.data (EEG.data, chan)
+    
     # Window the time series data
     # Calculate the required number of splits
     num.split <- seconds/windowsize  # The total length in seconds / size of window
     # Create a set of windowed data matrices
-    # Splits matrix into a list of matrices, each 1/nsplit of the original is size
-    EEG.window <- window.matrix (EEG.data, num.split)  
-    
+    # Splits matrix into a list of matrices, each 1/nsplit of the original in size
+    if (overlap == 1){  # Overlapping windows
+      EEG.window <- overlap.window.matrix (EEG.data, num.split)   
+      num.split <- 2*num.split-1
+    } else {  # Non overlapping windows
+      EEG.window <- window.matrix (EEG.data, num.split)  
+    }
+
     # Loop for all slices in the windowed data
     for (slices in 1:num.split) { # Step through the individual smaller matrices)
     
       # Get a slice from the windowed data
       EEG.slice <- EEG.window[[slices]]
-      #Get the number of EEG channels
-      num.channel <- nrow(EEG.slice)
-      
+
       # Initialise a feature vector for the slice
       feature.vector <- c()
       
       # Loop for all channels in the EEG slice
-      for (channels in 1:num.channel) {
+      for (channels in 1:16) {
         prefix <- paste0("Chan_",channels) # Make a prefix with channel name  
         EEG.channel <- EEG.slice[channels,]  # Get row from matrix
+        
+        # Take the 1st differentiation function of the time series
+        EEG.channel <- diff(EEG.channel)
         
         # Get summary statistics and append to feature vector
         feature.vector <- feature.statistic(EEG.channel, prefix)
@@ -218,13 +304,23 @@ for (folder in folder.list) {
       }
     }  # End loop for slices
   }  # End loop for files
+  
+  # Drop rownames from results
+  rownames(feature.vector.matrix) <- c()
+  
+  # Normalise each feature
+  feature.vector.matrix <- normalise.feature(feature.vector.matrix)
+  
+  # Save results as .rda object
+  # Set save location
+  setwd(features.dir)
+  
+  # Save results for each patient to a .rda file
+  save(feature.vector.matrix, file = paste0(folder,"_","features.rda"))
+  
 }  # End loop for folder
-
-# Drop rownames from results
-rownames(feature.vector.matrix) <- c()
-
-
-# ################################################################################################################################################
+   
+#################################################################################################################################################
 # 
 # # Generate features for ONE CHANNEL
 # gen_features_onearray <- function (indata, pre, freqs) {

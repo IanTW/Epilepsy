@@ -113,6 +113,8 @@ read.EEG.file <- function (filename) {
   EEG.file[["seconds"]] <- as.numeric(a[[1]][[2]])
   # Sample rate - element 3
   EEG.file[["frequency"]] <- as.numeric(a[[1]][[3]])
+  # Number of EEG channels
+  EEG.file[["channel"]] <- as.numeric(nrow(a[[1]][[1]]))
   # EEG electrode labels 
   EEG.file[["labels"]] <- unlist(a[[1]][[4]])
   # EEG sequence number if available or set to -1
@@ -148,14 +150,24 @@ parent.dir <- getwd()
 
 if (sample.data == 1){
   
+  # Set subdirectory for feature vector results
+  features.dir <- paste0(parent.dir, '/Features/')
   # Set working directory for sample dataset
   parent.dir <- paste0(parent.dir, '/Sample Data/')
 } else  { 
+  # Set subdirectory for feature vector results
+  features.dir <- paste0('H:', '/Features/')  # Change drive letter as needed
   # Set working directory for full dataset (Drive letter may vary across machines)
-  parent.dir <- paste0('H:', '/Data/')    # Change drive letter as needed
+  parent.dir <- paste0('H:', '/Data/')  # Change drive letter as needed
+
 }
 
-#Set window size for file splitting (seconds)
+# Set this to choose overlapping or non-overlapping windows
+# Warning!! Almost doubles processing time: time*(2n-1)
+# Overlapping window, set = 1; non-overlapping, set = 0
+overlap <- 1
+
+#Set window size for file splitting (seconds), preferably factor of 600.
 windowsize <- 60
 
 ########################### PREPROCESSING - LABELLING FILES ##########################
@@ -186,10 +198,9 @@ windowsize <- 60
 # Construct EEG features and output a feature vector for the classifiers
 # Will be run each time features are generated or optimised
 
-# Initialise matrix for feature vectors
-feature.vector.matrix  <- NULL
-
 source ("MakeFeature.R")
+
+# Results are saved to a 'Features' folder, one matrix per patient
 
 ############################## SUPPORT VECTOR MACHINE ################################
 
