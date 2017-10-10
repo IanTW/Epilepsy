@@ -21,28 +21,6 @@
 # (F. Zamora-Martínez,    #F. Muñoz-Malmaraz, P. Botella-Rocamora, J. Pardo).        # 
 #                                                                                    #
 ######################################################################################
-# Copyright (c) 2014, Wei Wu                                                         #
-#                                                                                    #
-# Permission is hereby granted, free of charge, to any person obtaining a copy       #
-# of this software and associated documentation files (the "Software"), to deal      #
-# in the Software without restriction, including without limitation the rights       #
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell          #
-# copies of the Software, and to permit persons to whom the Software is              #
-# furnished to do so, subject to the following conditions:                           #
-#                                                                                    #
-# The above copyright notice and this permission notice shall be included in all     #
-# copies or substantial portions of the Software.                                    #
-#                                                                                    #
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR         #
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,           #
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE        #
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER             #
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,      #
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS             #
-# IN THE SOFTWARE.                                                                   #
-#                                                                                    # 
-# See: https://github.com/wei-wu-nyc/Kaggle-SeizureDetection-Official                #
-#                                                                                    #
 ######################################################################################
 # Copyright (c) 2014, ESAI, Universidad CEU Cardenal Herrera,                        #
 # (F. Zamora-Martínez, F. Muñoz-Malmaraz, P. Botella-Rocamora, J. Pardo)             #
@@ -141,18 +119,22 @@ patient.num <- c('Dog_1' = 1, 'Dog_2' = 2, 'Dog_3' = 3,
                  'Dog_4' = 4, 'Dog_5' = 5, 'Patient_1' = 6,
                  'Patient_2' = 7)
 
-# Set this to choose which set of data to work on
-# Sample data, set = 1; full data, set = 0
-sample.data <- 1
-
 # Code is developed on several machines and location of data files may vary
 # Get working directory for code and data samples
 parent.dir <- getwd()
 
-# For labels for feature vectors
+# Location for feature vectors if generating features
+# ARE YOU OVERWRITING ANY EXISTING FEATURES?
 feature.folder <- "Set_1"
-# Set labels for experimental run
+# Location for test results if running algorithms
+# ARE YOU OVERWRITING ANY EXISTING RESULTS?
 results.folder <- "Run_1"
+# Location for of feature vectors for partitioning
+partition.feature.folder <- "Set_1"
+
+# Set this to choose which set of data to work on
+# Sample data, set = 1; full data, set = 0
+sample.data <- 1
 
 if (sample.data == 1){
   # Set subdirectory for feature vector results
@@ -179,7 +161,7 @@ windowsize <- 60
 ########################### PREPROCESSING - LABELLING FILES ##########################
 
 # Label the test segments with the correct labels 
-# Required initially and when rebuilding the dataset
+# Required initially and if rebuilding the dataset
 
 # source ("RenameData.R")
 
@@ -204,40 +186,17 @@ windowsize <- 60
 # Construct EEG features and output a feature vector for the classifiers
 # Will be run each time features are generated or optimised
 
- source ("MakeFeature.R")
+# source ("MakeFeature.R")
 
 # Results are saved to a 'Features' folder, one matrix per patient
 
 ################################ DATA PARTITIONING ###################################
 
-# Get all feature vectors and combine (generalised model)
-# Set path to feature set
-feature.folder <- "Set_1"
-feature.folder.path <- paste0(parent.dir, '/Features/', feature.folder)
+# Create test/train partitions for the feature vectors
+# Will be run at least once each time features are generated or optimised
 
-# Get list of files
-list.of.feature.files <- dir(feature.folder.path, "*.rda")
+ source ("PartitionFeature.R")
 
-# Initialise object
-combined.feature.vector <- c()
-
-# Loop for all files containing feature vectors 
-for (feature.file in list.of.feature.files){
-  load(feature.file)  # Load file
-  
-  if(is.null(combined.feature.vector)) {
-    combined.feature.vector <- feature.vector.matrix  # First file do not rowbind
-  } else { combined.feature.vector <- rbind(combined.feature.vector,
-                                            feature.vector.matrix)
-  }
-}
-
-
-
-
-
-
-
-
+##################################### END CODE ######################################
 
 

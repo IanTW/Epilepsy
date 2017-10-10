@@ -1,6 +1,6 @@
 ######################################################################################
-# File Name: GetMetadata.R                                                           #
-# Purpose: Summarise metadata from EEG data files                                    #
+# File Name: PartitionFeature.R                                                      #
+# Purpose: Partition feature vectors into Test/Train partitions                      #
 #                                                                                    #
 # Author: Ian Watson                                                                 #
 # Email1: d13128934@mydit.ie                                                         #
@@ -49,77 +49,27 @@
 
 # This file should be called from the main code file SeizurePrediction.R
 
-# Get metadata for all files and summarise
+# Set path to feature vectors
+feature.folder.path <- paste0(parent.dir, '/Features/', partition.feature.folder)
 
-# Initialise row counter
-inum <- 1
+# Get list of files
+list.of.feature.files <- dir(feature.folder.path, "*.rda")
+# Set working directory
+setwd(feature.folder.path)
 
-# Set up logical array with 8000 elements ~ total number of data files
-log.array <- rep(NA, 8000)
-# Create results data frame
-meta.data.results <- data.frame(filename = log.array, seconds = log.array,
-                                frequency = log.array, channels = log.array,
-                                labels = log.array, sequence = log.array,
-                                samples = log.array)
+# Initialise object
+combined.feature.vector <- c()
 
-# Loop for all patients' folders
-for (folder in folder.list) {
+# Get all feature vectors and combine (generalised model)
+# Loop for all files containing feature vectors 
+for (feature.file in list.of.feature.files){
+  load(feature.file)  # Load file
   
-  # Set working directory here
-  data.dir <- paste0(parent.dir, folder)
-  setwd(data.dir)
-  
-  # Get list of files for processing
-  list.of.files <- dir(data.dir, "*.mat")
-  
-  # Remove existing log file
-  file.remove(paste0(folder, "_metadata_summary.txt"))
-  
-  # Create log file
-  logFile = paste0(folder, "_metadata_summary.txt")
-  
-  # Loop for all files in the patient folder
-  for (filename in list.of.files) {
-
-    # Message to console
-    cat(paste0("Getting metadata ", filename, " ", Sys.time()), "\n")
-    # Read in .mat file
-    EEG.file <- read.EEG.file(filename)
-    # Get length of file segment in seconds
-    seconds <- EEG.file[["seconds"]]
-    # Get sample frequency
-    freq <- EEG.file[["frequency"]]
-    # Get sequence number of file
-    seq <- EEG.file[["sequence"]]
-    # Get electrode labels
-    labels <- EEG.file[["labels"]]
-    # Write to result data frame
-    meta.data.results[inum, ] <- c(filename,
-                                   EEG.file[["seconds"]],
-                                   EEG.file[["freq"]],
-                                   length(EEG.file[["labels"]]),  # No. channels
-                                   EEG.file[["labels"]][1],
-                                   EEG.file[["seq"]],
-                                   ncol(EEG.file[[1]]))  # No. samples
-    # Increment row counter
-    inum=inum+1
-    # Write to log file
-    cat(paste0("Checked ", filename, " ", Sys.time()),  # Write to log
-        file = logFile, append = TRUE, sep = "\n")
+  if(is.null(combined.feature.vector)) {
+    combined.feature.vector <- feature.vector.matrix  # First file do not rowbind
+  } else { combined.feature.vector <- rbind(combined.feature.vector,
+                                            feature.vector.matrix)
   }
 }
 
-# Remove any rows not used
-meta.data.results <- meta.data.results[complete.cases(meta.data.results), ]
 
-# Convert to factor
-coltofact <- c("seconds", "frequency", "channels", "labels", "sequence", "samples")
-meta.data.results[coltofact] <- lapply(meta.data.results[coltofact], factor)
-
-# Reset working directory
-setwd(parent.dir)
-
-# Save results to a .rda file
-save(meta.data.results, file = "metadata.rda")
-
-######################################################################################
