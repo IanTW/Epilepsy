@@ -17,9 +17,6 @@
 # the performance of SVM and neural network classifiers used for epileptic seizure   #
 # prediction                                                                         #
 #                                                                                    #
-# Parts of code adapted from Wei Wu & ESAI, Universidad CEU Cardenal Herrera,        #
-# (F. Zamora-Martínez,    #F. Muñoz-Malmaraz, P. Botella-Rocamora, J. Pardo).        # 
-#                                                                                    #
 ######################################################################################
 ######################################################################################
 # Copyright (c) 2014, ESAI, Universidad CEU Cardenal Herrera,                        #
@@ -47,7 +44,7 @@
 #                                                                                    #
 ######################################################################################
 
-################################# SET UP AND LOAD PACKAGES ###########################
+############################## SET UP AND LOAD PACKAGES ##############################
 
 # Install and load required R packages 
 # List of required packages
@@ -155,29 +152,32 @@ if (sample.data == 1){
 # Overlapping window, set = 1; non-overlapping, set = 0
 overlap <- 1
 
-#Set window size for file splitting (seconds), preferably factor of 600.
+# Set window size for file splitting (seconds), preferably factor of 600.
 windowsize <- 60
+
+# Set training split
+split <- 0.75
 
 ########################### PREPROCESSING - LABELLING FILES ##########################
 
 # Label the test segments with the correct labels 
 # Required initially and if rebuilding the dataset
 
-# source ("RenameData.R")
+#source ("RenameData.R")
 
 ######################## PREPROCESSING - INTEGRITY CHECK FILES #######################
 
 # Check each data file by reading the data into a matrix
 # Recommended after any data file migrations
 
-# source ("IntegrityCheck.R")
+#source ("IntegrityCheck.R")
 
 ############################ PREPROCESSING - GET METADATA ############################
 
 # Read in the data files and create a summary table of metadata
 # Required initially and when rebuilding the dataset
 
-# source ("GetMetadata.R")
+#source ("GetMetadata.R")
 
 # Results are saved to metadata.rda
 
@@ -186,7 +186,7 @@ windowsize <- 60
 # Construct EEG features and output a feature vector for the classifiers
 # Will be run each time features are generated or optimised
 
-# source ("MakeFeature.R")
+#source ("MakeFeature.R")
 
 # Results are saved to a 'Features' folder, one matrix per patient
 
@@ -195,8 +195,15 @@ windowsize <- 60
 # Create test/train partitions for the feature vectors
 # Will be run at least once each time features are generated or optimised
 
- source ("PartitionFeature.R")
+#source ("PartitionFeature.R")
 
-##################################### END CODE ######################################
+################################## DATA MODELING #####################################
+
+# Create test/train partitions for the feature vectors
+# Will be run at least once each time features are generated or optimised
+
+#source ("ModelData.R")
+
+#################################### END CODE ########################################
 
 

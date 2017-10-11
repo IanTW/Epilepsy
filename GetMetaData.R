@@ -16,10 +16,7 @@
 # R code for implementing a machine learning classification experiment to compare    #
 # the performance of SVM and neural network classifiers used for epileptic seizure   #
 # prediction                                                                         #
-#                                                                                    #
-# Parts of code adapted from Wei Wu & ESAI, Universidad CEU Cardenal Herrera,        #
-# (F. Zamora-Martínez,    #F. Muñoz-Malmaraz, P. Botella-Rocamora, J. Pardo).        # 
-#                                                                                    #
+#                                                                                     #
 ######################################################################################
 ######################################################################################
 # Copyright (c) 2014, ESAI, Universidad CEU Cardenal Herrera,                        #
