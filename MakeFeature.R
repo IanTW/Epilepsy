@@ -198,8 +198,14 @@ impute.missing <- function (feature.vector){}
 
 # Loop for all folders with patient data
 for (folder in folder.list) {
+
+  # Create log file and log start time
+  setwd(features.dir)
+  logFile = paste0(folder, "_feature_extraction.txt")
+  line <- paste0("Starting at ", Sys.time())
+  write(line, file = logFile, append = TRUE)
   
-  # Set working directory
+  # Set working directory for data files
   patient.dir <- paste0(data.dir, folder)
   setwd(patient.dir)
   
@@ -211,7 +217,6 @@ for (folder in folder.list) {
   
   # Loop for all files in the patient folder
   for (filename in list.of.files) {
-    
     # Message to console
     cat(paste0("Processing ", filename, " ", Sys.time()), "\n")
     # Read in .mat file
@@ -302,6 +307,10 @@ for (folder in folder.list) {
   
   # Save results for each patient to a .rda file
   save(feature.vector.matrix, file = paste0(folder,"_","features.rda"))
+  
+  # Update log
+  line <- paste0("Ending at ", Sys.time())
+  write(line, file = logFile, append = TRUE)
   
 }  # End loop for folder
    
