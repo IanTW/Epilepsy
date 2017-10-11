@@ -175,7 +175,7 @@ standard.EEG.data <- function (EEG.data, chan){
   
   # In the case of 24 channels, randomly select 16    
   } else if (chan == 24){
-    set.seed()  # For reproducability
+    set.seed(1256)  # For reproducability
     EEG.data <- EEG.data[sample(nrow(EEG.data), 16), ]
   }
 
