@@ -59,10 +59,22 @@ Reference to requirement to perform FFT on diff of a series
 https://stackoverflow.com/questions/14010605/fast-fourier-transform-in-r
 
 Signal processing packages:
-Spectral
+Spectral - meh
+spectral.methods - meh
+
+seewave - spectrogram and fundamental freq ('fund()') and dominant 'dfreq()'
+
 TSA
 Package e1071 for SVM
 Package erpR for ERP may have some function?
+spectrum function in stats package - meh
+fftw
+fftfilt
+
+wavelets
+
+
+See zoo package rollapply function for segmentation too...
 
 There are two branches for the ESIA code - do you have the latest?
 
@@ -95,8 +107,6 @@ You can also do a QQplot
 qqnorm(x) versus a normal dist using qqnorm(rnorm(1000))
 5000 points of EEG channel is not normally distributed.
 See Kelleher textbook pp.93-94
-
-
 
 
 
