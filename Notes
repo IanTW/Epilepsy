@@ -32,7 +32,7 @@ Graphics      - plots
 Keep in mind this is a classification comparison!!!!! Experiments should focus on this!!!!!!!!!!!!!
 Experimental Options:
 
-Downsampling
+Downsampling - this is needed for FFT calculations (or cope with a variable bin size)
 Window size
 Number of folds
 Normalisation or Standardisation
