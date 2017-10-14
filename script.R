@@ -59,10 +59,9 @@ rolling_features = function(ts){
 
 #------ 400 Hz sampling
 window = 400 * 60
-#nyquist = half max sample
 nyquist = 200
 
-train_files = dir(path="C:/Users/ian_wa/Documents/Epilepsy/Sample Data/Dog_1",full.names=T)
+train_files = dir(path="train_2/",full.names=T)
 for(idx in seq_along(train_files)){
     train_file = train_files[idx]
     print(idx)
