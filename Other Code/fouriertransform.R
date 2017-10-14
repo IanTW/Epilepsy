@@ -14,17 +14,18 @@ f <- function(t,w) {
 
 #plot.frequency.spectrum() plot a frequency spectrum of a given XkXk
 plot.frequency.spectrum <- function(X.k, xlimits=c(0,length(X.k))) {
+  # 0 to N-1 and modulus of complex (gives magnitude I think)
   plot.data  <- cbind(0:(length(X.k)-1), Mod(X.k))
   
   # TODO: why this scaling is necessary?
+  # Double the magnitude prob. because of pos and neg values
   plot.data[2:length(X.k),2] <- 2*plot.data[2:length(X.k),2] 
+  
   
   plot(plot.data, t="h", lwd=2, main="", 
        xlab="Frequency (Hz)", ylab="Strength", 
        xlim=xlimits, ylim=c(0,max(Mod(plot.data[,2]))))
 }
-
-
 
 #Two examples of sine waves:
 xs <- seq(-2*pi,2*pi,pi/100)
@@ -68,14 +69,14 @@ fft(1:4) / 4
 #f(t)=2+0.75×sin(3wt)+0.25×sin(7wt)+0.5×sin(10wt)
 
 acq.freq <- 100                    # data acquisition (sample) frequency (Hz)
-time     <- 6                      # measuring time interval (seconds)
+time     <- 1                     # measuring time interval (seconds)
 ts       <- seq(0,time-1/acq.freq,1/acq.freq) # vector of sampling time-points (s) 
 f.0 <- 1/time
 
-dc.component <- 1
-component.freqs <- c(3,7,10)        # frequency of signal components (Hz)
+dc.component <- 0
+component.freqs <- c(3,5,7)        # frequency of signal components (Hz)
 component.delay <- c(0,0,0)         # delay of signal components (radians)
-component.strength <- c(1.5,.5,.75) # strength of signal components
+component.strength <- c(1) # strength of signal components
 
 plot.fourier(f,f.0,ts=ts)
 
@@ -93,12 +94,126 @@ head(trajectory,n=30)
 #So, given that trajectory we can find where the frequency peaks are:
 
 X.k <- fft(trajectory)                   # find all harmonics with fft()
-plot.frequency.spectrum(X.k, xlimits=c(0,20))
-
+plot.frequency.spectrum(X.k, xlimits=c(0,50))
 
 #And if we only had the frequency peaks we could rebuild the signal:
 
 x.n <- get.trajectory(X.k,ts,acq.freq) / acq.freq  # TODO: why the scaling?
 plot(ts,x.n, type="l"); abline(h=0,lty=3)
 points(ts,trajectory,col="red",type="l") # compare with original
+
+#########################################################################
+#Other example
+
+acq.freq <- 100                    # data acquisition (sample) frequency (Hz)
+time     <- 60                     # measuring time interval (seconds)
+ts       <- seq(0,time-1/acq.freq,1/acq.freq) # vector of sampling time-points (s) 
+f.0 <- 1/time
+
+dc.component <- 0
+component.freqs <- c(50)        # frequency of signal components (Hz)
+component.delay <- c(0)         # delay of signal components (radians)
+component.strength <- c(1) # strength of signal components
+
+plot.fourier(f,f.0,ts=ts)
+
+
+#Let’s assume that we don’t know the functional form of trajectory, we only have its contents, the period and the sampling time points:
+
+w <- 2*pi*f.0
+trajectory <- sapply(ts, function(t) f(t,w))
+X.k <- fft(trajectory)
+plot.frequency.spectrum(X.k, xlimits=c(0,6000))
+
+
+#The frequency scales are wrong though and show the FFT indexes N
+#########################################################################
+# Using periodogram
+
+#manually make a 1Hz sine wave 
+ts2 <- seq(0,1,1/100)
+ts2 <- data.frame(ts2)
+ts2$sin <- sin(2*pi*ts2$ts2)
+plot(ts2$ts2, ts2$sin)
+X.k2 <- fft(ts2$sin)
+
+plot.frequency.spectrum(X.k2, xlimits=c(0,50))
+
+
+#Make a sine wave with provided code
+acq.freq <- 100                    # data acquisition (sample) frequency (Hz)
+time     <- 1                     # measuring time interval (seconds)
+ts       <- seq(0,time-1/acq.freq,1/acq.freq) # vector of sampling time-points (s) 
+f.0 <- 1/time
+dc.component <- 0
+component.freqs <- c(1)        # frequency of signal components (Hz)
+component.delay <- c(0)         # delay of signal components (radians)
+component.strength <- c(1)
+w <- 2*pi*f.0
+trajectory <- sapply(ts, function(t) f(t,w))
+
+plot(ts, trajectory)
+X.k <- fft(trajectory)
+plot.frequency.spectrum(X.k, xlimits=c(0,50))
+
+#The plots are the same
+
+#########################
+#Using TSA library
+periodogram(trajectory)
+periodogram(ts2$sin)
+#Results same
+
+
+data(eeg)
+periodogram(eeg, xlimits = c(0,0.1))
+plot(eeg)
+
+a <- periodogram(eeg, plot = FALSE)
+#Get spec
+b <- a[2]
+
+
+load("~/Epilepsy/Sample Data/SampleChannel1.rda")
+periodogram(EEG.channel)
+
+a <- periodogram(EEG.channel, plot = FALSE)
+b <- a[2]
+#limit axis
+periodogram(eeg, xlim = c(0,0.1))
+
+#Is the periodogram calculating the power?
+#Compare to basic way of doing it
+
+X.k3 <- fft(EEG.channel)
+#Take abs value to get Real
+X.k3 <- abs(X.k3)
+#Calculate frequency resolution Delta F
+fs <- 400
+N = length(EEG.channel)
+deltaf <- fs/N # Length is N
+
+sampleindex <- 1:N
+
+#axis converted to freq
+f = sampleindex*deltaf
+
+#plot with fft bin/index
+plot(sampleindex, X.k3,'l')
+
+#plot with freq - note the midpoint is Fs/2
+plot(f,X.k3, 'l')
+
+#Limit to same range as periodogram
+plot(sampleindex, X.k3,'l',xlim=c(0,N/2))
+
+#plot periodogram and compare
+periodogram(EEG.channel) # periodogram has much higher values on y
+
+#Double
+X.k3 <- 2*X.k3
+
+
+
+
 
