@@ -47,14 +47,11 @@
 # This file should be called from the main code file SeizurePrediction.R
 
 # Loop for all patients' folders
-for (folder in patient.name){   
+for (folder in folder.list){   
   
   # Set working directory here
-  # This can be used to check the full dataset...
-  data.dir <- paste0(full.dataset.dir, folder)
-  # ...or it can be used to check the sample data
-  # data.dir <- paste0(sample.dataset.dir, folder)
-  setwd(data.dir)
+  patient.dir <- paste0(data.dir, folder)
+  setwd(patient.dir)
   
   # Remove existing log file
   file.remove(paste0(folder, "_integtrity_check.txt"))

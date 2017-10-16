@@ -1,6 +1,6 @@
 ######################################################################################
-# File Name: GetMetadata.R                                                           #
-# Purpose: Summarise metadata from EEG data files                                    #
+# File Name: DownsampleFiles.R                                                       #
+# Purpose: Resample to 400Hz and get 16 channels per file                            #
 #                                                                                    #
 # Author: Ian Watson                                                                 #
 # Email1: d13128934@mydit.ie                                                         #
@@ -16,7 +16,7 @@
 # R code for implementing a machine learning classification experiment to compare    #
 # the performance of SVM and neural network classifiers used for epileptic seizure   #
 # prediction                                                                         #
-#                                                                                     #
+#                                                                                    #
 ######################################################################################
 ######################################################################################
 # Copyright (c) 2014, ESAI, Universidad CEU Cardenal Herrera,                        #
@@ -46,44 +46,54 @@
 
 # This file should be called from the main code file SeizurePrediction.R
 
-# Get metadata for all files and summarise
+######################################################################################
 
-# Initialise row counter
-inum <- 1
+# Function to get a standard number of EEG channels
+standard.EEG.data <- function (EEG.data, chan){
+  # Standardise the number of channels to 16. Some files have 15 or 24 channels.
+  #
+  # Args:
+  #   EEG.data: Multichannel EEG data in a matrix; each row is an EEG channel
+  #   chan: The number of EEG channels in the file
+  #   
+  # Returns:
+  #   EEG.data: Multichannel EEG data in a matrix with 16 channels total
+  
+  # For the case of 15 channels, insert a row of zeroes
+  if (chan == 15){
+    EEG.data <- rbind(EEG.data, 0)
+    
+    # In the case of 24 channels, randomly select 16    
+  } else if (chan == 24){
+    set.seed(1256)  # For reproducability
+    EEG.data <- EEG.data[sample(nrow(EEG.data), 16), ]
+  }
+  
+  # Return
+  EEG.data
+}
 
-# Set up logical array with 8000 elements ~ total number of data files
-log.array <- rep(NA, 8000)
-# Create results data frame
-meta.data.results <- data.frame(filename = log.array, seconds = log.array,
-                                frequency = log.array, channels = log.array,
-                                labels = log.array, sequence = log.array,
-                                samples = log.array)
+######################################################################################
 
 # Loop for all patients' folders
-for (folder in folder.list) {
+for (folder in folder.list){   
   
   # Set working directory here
-  metadata.dir <- paste0(data.dir, folder)
-  setwd(metadata.dir)
+  downsample.dir <- paste0(data.dir, folder)
+  setwd(downsample.dir)
   
   # Get list of files for processing
-  list.of.files <- dir(metadata.dir, "*.mat")
-  
-  # Remove existing log file
- # file.remove(paste0(folder, "_metadata_summary.txt"))
-  
-  # Create log file
-  logFile = paste0(folder, "_metadata_summary.txt")
+  list.of.files <- dir(downsample.dir, "*.mat")
   
   # Loop for all files in the patient folder
   for (filename in list.of.files) {
-
     # Message to console
-    cat(paste0("Getting metadata ", filename, " ", Sys.time()), "\n")
+    cat(paste0("Processing ", filename, " ", Sys.time()), "\n")
     # Read in .mat file
     EEG.file <- read.EEG.file(filename)
-    # Get length of file segment in seconds
+    # Get time series data
     EEG.data <- EEG.file[["mat"]]
+    # Get length of file segment in seconds
     seconds <- EEG.file[["seconds"]]
     # Get sample frequency
     frequency <- EEG.file[["frequency"]]
@@ -93,35 +103,10 @@ for (folder in folder.list) {
     sequence <- EEG.file[["sequence"]]
     # Get electrode labels
     labels <- EEG.file[["labels"]]
-    # Get electrode labels
-    labels <- EEG.file[["labels"]]
-    # Write to result data frame
-    meta.data.results[inum, ] <- c(filename,
-                                   EEG.file[["seconds"]],
-                                   EEG.file[["frequency"]],
-                                   EEG.file[["channel"]],  # No. channels
-                                   EEG.file[["labels"]][1],
-                                   EEG.file[["sequence"]],
-                                   ncol(EEG.file[[1]]))  # No. samples
-    # Increment row counter
-    inum=inum+1
-    # Write to log file
-    cat(paste0("Checked ", filename, " ", Sys.time()),  # Write to log
-        file = logFile, append = TRUE, sep = "\n")
-  }
+    
+    # Fix number of channels
+    EEG.data <- standard.EEG.data(EEG.data, chan)
+    
+    
 }
-
-# Remove any rows not used
-meta.data.results <- meta.data.results[complete.cases(meta.data.results), ]
-
-# Convert to factor
-coltofact <- c("seconds", "frequency", "channels", "labels", "sequence", "samples")
-meta.data.results[coltofact] <- lapply(meta.data.results[coltofact], factor)
-
-# Reset working directory
-setwd(parent.dir)
-
-# Save results to a .rda file
-save(meta.data.results, file = "metadata.rda")
-
-######################################################################################
+}

@@ -213,6 +213,7 @@ periodogram(EEG.channel) # periodogram has much higher values on y
 #Double
 X.k3 <- 2*X.k3
 
+# Periodogram seems to have a total of four times the value
 
 
 
