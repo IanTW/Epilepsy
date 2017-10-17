@@ -21,31 +21,6 @@
 # (F. Zamora-Martínez,    #F. Muñoz-Malmaraz, P. Botella-Rocamora, J. Pardo).        # 
 #                                                                                    #
 ######################################################################################
-######################################################################################
-# Copyright (c) 2014, ESAI, Universidad CEU Cardenal Herrera,                        #
-# (F. Zamora-Martínez, F. Muñoz-Malmaraz, P. Botella-Rocamora, J. Pardo)             #
-#                                                                                    #
-# Permission is hereby granted, free of charge, to any person obtaining a copy       #
-# of this software and associated documentation files (the "Software"), to deal      #
-# in the Software without restriction, including without limitation the rights       #
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell          #
-# copies of the Software, and to permit persons to whom the Software is              #
-# furnished to do so, subject to the following conditions:                           #
-#                                                                                    #
-# The above copyright notice and this permission notice shall be included in all     #
-# copies or substantial portions of the Software.                                    #
-#                                                                                    #
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR         #
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,           #
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE        #
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER             #
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,      #
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS             #
-# IN THE SOFTWARE.                                                                   #
-#                                                                                    # 
-# See https://github.com/ESAI-CEU-UCH/kaggle-epilepsy                                #
-#                                                                                    #
-######################################################################################
 
 # This file should be called from the main code file SeizurePrediction.R
 
@@ -281,86 +256,101 @@ for (folder in folder.list) {
   
   # Get list of files for processing
   list.of.files <- dir(patient.dir, "*.mat")
+ 
+  if (skip.files == 1){
+    
+    # Load metadata for data files
+    load(paste0(data.dir,"metadata.rda"))
+    # Filter out list of files for the patient 
+    patient.files <- meta.data.results[grep(folder, meta.data.results$filename),]
+    # Get files that have 16 channels
+    list.of.files <- patient.files[patient.files$channels == 16]
+    # Coerce to list
+    list.of.files <- as.list(list.of.files$filename)
+  }
   
   # Loop for all files in the patient folder
-  for (filename in list.of.files) {
-    # Message to console
-    cat(paste0("Processing ", filename, " ", Sys.time()), "\n")
-    # Read in .mat file
-    EEG.file <- read.EEG.file(filename)
-    # Get time series data
-    EEG.data <- EEG.file[["mat"]]
-    # Get length of file segment in seconds
-    seconds <- EEG.file[["seconds"]]
-    # Get sample frequency
-    frequency <- round(EEG.file[["frequency"]], 0)
-    # Get number of channels
-    chan <- EEG.file[["channel"]]
-    # Get sequence number of file
-    sequence <- EEG.file[["sequence"]]
-    # Get electrode labels
-    labels <- EEG.file[["labels"]]
-    
-    # Function to get a total of 16 channels
-    EEG.data <- standard.EEG.data (EEG.data, chan)
-    
-    # Window the time series data
-    # Calculate the required number of splits
-    num.split <- seconds/windowsize  # The total length in seconds / size of window
-    # Create a set of windowed data matrices
-    # Splits matrix into a list of matrices, each 1/nsplit of the original in size
-    if (overlap == 1){  # Overlapping windows
-      EEG.window <- overlap.window.matrix (EEG.data, num.split)   
-      num.split <- 2*num.split-1
-    } else {  # Non overlapping windows
-      EEG.window <- window.matrix (EEG.data, num.split)  
-    }
-
-    # Loop for all slices in the windowed data
-    for (slices in 1:num.split) { # Step through the individual smaller matrices)
-    
-      # Get a slice from the windowed data
-      EEG.slice <- EEG.window[[slices]]
-
-      # Initialise a feature vector for the slice
-      feature.vector <- c()
+  # Proceed if list of files is not empty
+  if (length(list.of.files) != 0 ){
+    for (filename in list.of.files) {
+      # Message to console
+      cat(paste0("Processing ", filename, " ", Sys.time()), "\n")
+      # Read in .mat file
+      EEG.file <- read.EEG.file(filename)
+      # Get time series data
+      EEG.data <- EEG.file[["mat"]]
+      # Get length of file segment in seconds
+      seconds <- EEG.file[["seconds"]]
+      # Get sample frequency
+      frequency <- round(EEG.file[["frequency"]], 0)
+      # Get number of channels
+      chan <- EEG.file[["channel"]]
+      # Get sequence number of file
+      sequence <- EEG.file[["sequence"]]
+      # Get electrode labels
+      labels <- EEG.file[["labels"]]
+     
+      # Function to get a total of 16 channels
+      EEG.data <- standard.EEG.data (EEG.data, chan)
       
-      # Loop for all channels in the EEG slice
-      for (channels in 1:16) {
-        prefix <- paste0("Chan_",channels) # Make a prefix with channel name  
-        EEG.channel <- EEG.slice[channels,]  # Get row from matrix
-        
-        # Take the 1st differentiation function of the time series
-        EEG.channel <- diff(EEG.channel)
-        
-        # Get summary statistics and append to feature vector
-        feature.vector <- feature.statistic(EEG.channel, prefix)
-        
-        # Get FFT statistics and append to feature vector
-        feature.vector <- feature.FFT(EEG.channel, prefix, frequency)
+      # Window the time series data
+      # Calculate the required number of splits
+      num.split <- seconds/windowsize  # The total length in seconds / size of window
+      # Create a set of windowed data matrices
+      # Splits matrix into a list of matrices, each 1/nsplit of the original in size
+      if (overlap == 1){  # Overlapping windows
+        EEG.window <- overlap.window.matrix (EEG.data, num.split)   
+        num.split <- 2*num.split-1
+      } else {  # Non overlapping windows
+        EEG.window <- window.matrix (EEG.data, num.split)  
       }
+  
+      # Loop for all slices in the windowed data
+      for (slices in 1:num.split) { # Step through the individual smaller matrices)
       
-      # Add in sequence
-      feature.vector['SEQ'] <- sequence
-      # Add in ID
-      feature.vector['ID'] <- paste0(filename)
-      # Add in slice number
-      feature.vector['SLICE'] <- slices
-      # Add in class label
-      if(grepl("inter", feature.vector['ID'])){
-        feature.vector['CLASS'] <- "Interictal"
-      } else {
-        feature.vector['CLASS'] <- "Preictal"
-      }
-      
-      # Make training matrix
-      if(is.null(feature.vector.matrix)) {  # Copy first row if null
-        feature.vector.matrix <- feature.vector  
-      } else {  # Else rowbind to existing object
-        feature.vector.matrix <- rbind(feature.vector.matrix, feature.vector) 
-      }
-    }  # End loop for slices
-  }  # End loop for files
+        # Get a slice from the windowed data
+        EEG.slice <- EEG.window[[slices]]
+  
+        # Initialise a feature vector for the slice
+        feature.vector <- c()
+        
+        # Loop for all channels in the EEG slice
+        for (channels in 1:16) {
+          prefix <- paste0("Chan_",channels) # Make a prefix with channel name  
+          EEG.channel <- EEG.slice[channels,]  # Get row from matrix
+          
+          # Take the 1st differentiation function of the time series
+          EEG.channel <- diff(EEG.channel)
+          
+          # Get summary statistics and append to feature vector
+          feature.vector <- feature.statistic(EEG.channel, prefix)
+          
+          # Get FFT statistics and append to feature vector
+          feature.vector <- feature.FFT(EEG.channel, prefix, frequency)
+        }
+        
+        # Add in sequence
+        feature.vector['SEQ'] <- sequence
+        # Add in ID
+        feature.vector['ID'] <- paste0(filename)
+        # Add in slice number
+        feature.vector['SLICE'] <- slices
+        # Add in class label
+        if(grepl("inter", feature.vector['ID'])){
+          feature.vector['CLASS'] <- "Interictal"
+        } else {
+          feature.vector['CLASS'] <- "Preictal"
+        }
+        
+        # Make training matrix
+        if(is.null(feature.vector.matrix)) {  # Copy first row if null
+          feature.vector.matrix <- feature.vector  
+        } else {  # Else rowbind to existing object
+          feature.vector.matrix <- rbind(feature.vector.matrix, feature.vector) 
+        }
+      }  # End loop for slices
+    }  # End loop for files
+  }
   
   # Drop rownames from results
   rownames(feature.vector.matrix) <- c()

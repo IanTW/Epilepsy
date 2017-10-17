@@ -24,7 +24,6 @@ Algorithm(SVM)- training
 Results       - evaluation
               - comparison
 
-
 Graphics      - plots
               - tables?
 
@@ -32,15 +31,13 @@ Graphics      - plots
 Keep in mind this is a classification comparison!!!!! Experiments should focus on this!!!!!!!!!!!!!
 Experimental Options:
 
-Downsampling - this is needed for FFT calculations (or cope with a variable bin size)
 Window size
 Number of folds
 Normalisation or Standardisation
 Specific or non-specific [Train and test on Dog_1. Then see if Dog_1 can be used to predict others. Repeat for all patients.]
 
 To Do
-Figure out how to plot EEG. EEGkit may only work on a EDF. Matt Craddock new library
-is not on CRAN and only has install instructions for Bash.
+Figure out how to plot EEG with Matt Craddock - new library is not on CRAN and only has install instructions for Bash.
 Weekly progress report
 Read through Kaggle detection 2014 discussions for R coding ideas
 
@@ -53,10 +50,6 @@ Dog5 - 671 files
 Pat1 - 263 files
 Pat2 - 210 files
 Total 7999
-
-
-Reference to requirement to perform FFT on diff of a series
-https://stackoverflow.com/questions/14010605/fast-fourier-transform-in-r
 
 Signal processing packages:
 Spectral - meh
@@ -71,36 +64,24 @@ spectrum function in stats package - meh
 fftw
 fftfilt
 tune R -spectral components made for audio i think
-
-
-
 wavelets
-
-
-See zoo package rollapply function for segmentation too...
-
-There are two branches for the ESIA code - do you have the latest?
-
-Use .ts time series class in R for EEG ?
 
 Code to do 
 Normalisation function - few options (do scale norm and standardisation). Included in caret train()...jus sayin
 Cross validation 
-FFT feature extraction
-Channel averaging across all features
 
 Report to do
 References - check DOI has been added in Zotero before export
 Remove URLs where DOI is available
 
 Questions for Brendan
-Can feature vectors be different lengths?
+
+
 Can I pad with zeroes or an average? How do I treat missing data?
 Can I randomly pick 16 channels from 24?
 Do I normalise the feature vector? Is it better to use Z-scores
 How do I classify the slices (simple majority?)
 Should I take absolute values for time series? The mean is around zero..
-
 
 Notes on Standard scores
 If you want to use standard scores there is an assumption of a normal dist.
@@ -110,9 +91,3 @@ You can also do a QQplot
 qqnorm(x) versus a normal dist using qqnorm(rnorm(1000))
 5000 points of EEG channel is not normally distributed.
 See Kelleher textbook pp.93-94
-
-
-
-#FFT plot using TSA package
-
-#periodogram(indata,log='yes',plot=TRUE,ylab="Periodogram", xlab="Frequency") 
