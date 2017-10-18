@@ -257,6 +257,7 @@ for (folder in folder.list) {
   # Get list of files for processing
   list.of.files <- dir(patient.dir, "*.mat")
  
+  # If files are to be skipped if the number of channels != 16
   if (skip.files == 1){
     
     # Load metadata for data files
@@ -290,8 +291,12 @@ for (folder in folder.list) {
       # Get electrode labels
       labels <- EEG.file[["labels"]]
      
+      # If all files are to be included then 15 to 16 channels
+      # and reduce 24 to 16 channels
+      if (skip.files == 0){
       # Function to get a total of 16 channels
       EEG.data <- standard.EEG.data (EEG.data, chan)
+      }
       
       # Window the time series data
       # Calculate the required number of splits
@@ -322,11 +327,14 @@ for (folder in folder.list) {
           # Take the 1st differentiation function of the time series
           EEG.channel <- diff(EEG.channel)
           
-          # Get summary statistics and append to feature vector
-          feature.vector <- feature.statistic(EEG.channel, prefix)
-          
-          # Get FFT statistics and append to feature vector
-          feature.vector <- feature.FFT(EEG.channel, prefix, frequency)
+          if (make.stat == 1){
+            # Get summary statistics and append to feature vector
+            feature.vector <- feature.statistic(EEG.channel, prefix)
+          }
+          if (make.fft == 1){
+            # Get FFT statistics and append to feature vector
+            feature.vector <- feature.FFT(EEG.channel, prefix, frequency)
+          }
         }
         
         # Add in sequence
@@ -355,26 +363,25 @@ for (folder in folder.list) {
   # Drop rownames from results
   rownames(feature.vector.matrix) <- c()
   
-  # Reorder columns for visual inspection (move last fourcolumns to start)
-  # Get number of columns
-  #N <- ncol(feature.vector.matrix)
-  #feature.vector.matrix <- feature.vector.matrix[, c(N, N-1, N-2, N-3, 1:(N-4))]
+  #Convert to data frame
+  feature.vector.matrix <- as.data.frame(feature.vector.matrix, stringsAsFactors = FALSE)
   
-  # Scale each feature to [0,1] range
+  # Number of columns
+  N <- ncol(feature.vector.matrix)
+  # Data columns to be coerced to numeric
+  # The last four columns are not data variables but labels
+  cols.num <- seq(1,N-4,1)
+  # Coerce data columns to numeric
+  feature.vector.matrix[cols.num] <- sapply(feature.vector.matrix[cols.num],as.numeric)
   
-  #dat <- sapply( dat, as.numeric )
-  #scalefn <- function(x) x * 1/max(x, na.rm = TRUE)
-  ## to all columns of your data frame
-  #dat <- feature.vector.matrix[,5:N]
-  #dat <- data.frame(dat)
-  #dat <- as.numeric(dat)
+  # Split out data columns
+  header <- feature.vector.matrix[,(N-3):N]
   
-  #dat <- data.frame(sapply(dat, scalefn))
+  # Scale data columns to range 0 to 1
+  dat <- data.frame(lapply(feature.vector.matrix[,1:(N-4)], function(x)(x-min(x))/(max(x)-min(x))))
   
-  #dat <- data.frame(lapply(dat, function(x) scale(x, center = FALSE, scale = max(x, na.rm = TRUE)/1)))
-  
-  
-  # feature.vector.matrix <- normalise.feature(feature.vector.matrix)
+  # Bind back to header
+  feature.vector.matrix <- cbind(header, dat)
   
   # Save results as .rda object
   # Set save location

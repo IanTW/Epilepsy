@@ -16,7 +16,7 @@
 # R code for implementing a machine learning classification experiment to compare    #
 # the performance of SVM and neural network classifiers used for epileptic seizure   #
 # prediction                                                                         #
-#                                                                                     #
+#                                                                                    #
 ######################################################################################
 
 # This file should be called from the main code file SeizurePrediction.R

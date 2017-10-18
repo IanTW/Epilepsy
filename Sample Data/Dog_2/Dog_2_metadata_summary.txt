@@ -28,3 +28,13 @@ Checked Dog_2_preictal_segment_0002.mat 2017-10-18 15:13:37
 Checked Dog_2_preictal_segment_0003.mat 2017-10-18 15:13:37
 Checked Dog_2_preictal_segment_0004.mat 2017-10-18 15:13:38
 Checked Dog_2_preictal_segment_0005.mat 2017-10-18 15:13:38
+Checked Dog_2_interictal_segment_0496.mat 2017-10-18 18:04:59
+Checked Dog_2_interictal_segment_0497.mat 2017-10-18 18:04:59
+Checked Dog_2_interictal_segment_0498.mat 2017-10-18 18:05:00
+Checked Dog_2_interictal_segment_0499.mat 2017-10-18 18:05:01
+Checked Dog_2_interictal_segment_0500.mat 2017-10-18 18:05:01
+Checked Dog_2_preictal_segment_0001.mat 2017-10-18 18:05:02
+Checked Dog_2_preictal_segment_0002.mat 2017-10-18 18:05:03
+Checked Dog_2_preictal_segment_0003.mat 2017-10-18 18:05:03
+Checked Dog_2_preictal_segment_0004.mat 2017-10-18 18:05:04
+Checked Dog_2_preictal_segment_0005.mat 2017-10-18 18:05:05

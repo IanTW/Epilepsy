@@ -123,11 +123,11 @@ if (sample.data == 1){
 }
 
 # Set this to choose overlapping or non-overlapping windows
-# Warning!! Almost doubles processing time: time*(2n-1)
+# Warning!! For n windows almost doubles processing time: time*(2n-1)
 # Overlapping window, set = 1; non-overlapping, set = 0
 overlap <- 1
 
-# Set window size for file splitting (seconds), preferably factor of 600.
+# Set window size for file segmentatio (seconds), preferably factor of 600.
 windowsize <- 60
 
 # Set training split
@@ -135,7 +135,15 @@ split <- 0.75
 
 # Skip files that do not have exactly 16 channels
 # Skip, set = 1; do not skip, set = 0
-skip.files <- 1
+skip.files <- 0
+
+# Make statistical features
+# Make, set = 1; do not make, set = 0
+make.stat <- 1
+
+# Make spectral density features
+# Make, set = 1; do not make, set = 0
+make.fft <- 1
 
 ########################### PREPROCESSING - LABELLING FILES ##########################
 
