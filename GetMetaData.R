@@ -99,4 +99,7 @@ setwd(data.dir)
 # Save results to a .rda file
 save(meta.data.results, file = "metadata.rda")
 
+# Reset working directory
+setwd(parent.dir)
+
 ######################################################################################

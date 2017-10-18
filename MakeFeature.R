@@ -28,11 +28,11 @@
 
 # Variables for development to be deleted
 
-folder <- "Dog_5"
-filename <- "Dog_5_interictal_segment_0446.mat"
-slices <- 1
-channels <- 1
-prefix <- "Chan_1"
+#folder <- "Dog_5"
+#filename <- "Dog_5_interictal_segment_0446.mat"
+#slices <- 1
+#channels <- 1
+#prefix <- "Chan_1"
 
 ######################################################################################
 
@@ -48,8 +48,8 @@ feature.statistic <- function (EEG.channel, prefix){
   
   # Get maximum value in series
   feature.vector[paste0(prefix,"_Max")] <- max(EEG.channel)
-  # Get mean value (1st moment)
-  feature.vector[paste0(prefix,"_Mean")] <- moment(EEG.channel, order = 1)
+  # Get mean value (1st moment) of absolute value
+  feature.vector[paste0(prefix,"_Mean")] <- moment(abs(EEG.channel), order = 1)
   # Get variance value (2nd moment)
   feature.vector[paste0(prefix,"_Variance")] <- moment(EEG.channel, order = 2)
   # Get skewness value (3rd moment)
@@ -264,7 +264,7 @@ for (folder in folder.list) {
     # Filter out list of files for the patient 
     patient.files <- meta.data.results[grep(folder, meta.data.results$filename),]
     # Get files that have 16 channels
-    list.of.files <- patient.files[patient.files$channels == 16]
+    list.of.files <- patient.files[patient.files$channels == 16,]
     # Coerce to list
     list.of.files <- as.list(list.of.files$filename)
   }
@@ -350,13 +350,31 @@ for (folder in folder.list) {
         }
       }  # End loop for slices
     }  # End loop for files
-  }
+  } 
   
   # Drop rownames from results
   rownames(feature.vector.matrix) <- c()
   
-  # Normalise each feature
-  #feature.vector.matrix <- normalise.feature(feature.vector.matrix)
+  # Reorder columns for visual inspection (move last fourcolumns to start)
+  # Get number of columns
+  #N <- ncol(feature.vector.matrix)
+  #feature.vector.matrix <- feature.vector.matrix[, c(N, N-1, N-2, N-3, 1:(N-4))]
+  
+  # Scale each feature to [0,1] range
+  
+  #dat <- sapply( dat, as.numeric )
+  #scalefn <- function(x) x * 1/max(x, na.rm = TRUE)
+  ## to all columns of your data frame
+  #dat <- feature.vector.matrix[,5:N]
+  #dat <- data.frame(dat)
+  #dat <- as.numeric(dat)
+  
+  #dat <- data.frame(sapply(dat, scalefn))
+  
+  #dat <- data.frame(lapply(dat, function(x) scale(x, center = FALSE, scale = max(x, na.rm = TRUE)/1)))
+  
+  
+  # feature.vector.matrix <- normalise.feature(feature.vector.matrix)
   
   # Save results as .rda object
   # Set save location

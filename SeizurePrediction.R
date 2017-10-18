@@ -135,7 +135,7 @@ split <- 0.75
 
 # Skip files that do not have exactly 16 channels
 # Skip, set = 1; do not skip, set = 0
-skip.files <- 0
+skip.files <- 1
 
 ########################### PREPROCESSING - LABELLING FILES ##########################
 
