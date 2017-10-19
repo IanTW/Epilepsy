@@ -33,7 +33,6 @@ Experimental Options:
 
 Window size
 Number of folds
-Normalisation or Standardisation
 Specific or non-specific [Train and test on Dog_1. Then see if Dog_1 can be used to predict others. Repeat for all patients.]
 
 To Do
@@ -67,7 +66,6 @@ tune R -spectral components made for audio i think
 wavelets
 
 Code to do 
-Normalisation function - few options (do scale norm and standardisation). Included in caret train()...jus sayin
 Cross validation 
 
 Report to do
@@ -78,10 +76,7 @@ Questions for Brendan
 
 
 Can I pad with zeroes or an average? How do I treat missing data?
-Can I randomly pick 16 channels from 24?
-Do I normalise the feature vector? Is it better to use Z-scores
 How do I classify the slices (simple majority?)
-Should I take absolute values for time series? The mean is around zero..
 
 Notes on Standard scores
 If you want to use standard scores there is an assumption of a normal dist.

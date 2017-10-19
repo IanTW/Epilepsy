@@ -28,11 +28,11 @@
 
 # Variables for development to be deleted
 
-folder <- "Dog_5"
-filename <- "Dog_5_interictal_segment_0446.mat"
-slices <- 1
-channels <- 1
-prefix <- "Chan_1"
+#folder <- "Dog_5"
+#filename <- "Dog_5_interictal_segment_0446.mat"
+#slices <- 1
+#channels <- 1
+#prefix <- "Chan_1"
 
 ######################################################################################
 
@@ -48,8 +48,8 @@ feature.statistic <- function (EEG.channel, prefix){
   
   # Get maximum value in series
   feature.vector[paste0(prefix,"_Max")] <- max(EEG.channel)
-  # Get mean value (1st moment)
-  feature.vector[paste0(prefix,"_Mean")] <- moment(EEG.channel, order = 1)
+  # Get mean value (1st moment) of absolute value
+  feature.vector[paste0(prefix,"_Mean")] <- moment(abs(EEG.channel), order = 1)
   # Get variance value (2nd moment)
   feature.vector[paste0(prefix,"_Variance")] <- moment(EEG.channel, order = 2)
   # Get skewness value (3rd moment)
@@ -257,6 +257,7 @@ for (folder in folder.list) {
   # Get list of files for processing
   list.of.files <- dir(patient.dir, "*.mat")
  
+  # If files are to be skipped if the number of channels != 16
   if (skip.files == 1){
     
     # Load metadata for data files
@@ -264,7 +265,7 @@ for (folder in folder.list) {
     # Filter out list of files for the patient 
     patient.files <- meta.data.results[grep(folder, meta.data.results$filename),]
     # Get files that have 16 channels
-    list.of.files <- patient.files[patient.files$channels == 16]
+    list.of.files <- patient.files[patient.files$channels == 16,]
     # Coerce to list
     list.of.files <- as.list(list.of.files$filename)
   }
@@ -290,8 +291,12 @@ for (folder in folder.list) {
       # Get electrode labels
       labels <- EEG.file[["labels"]]
      
+      # If all files are to be included then 15 to 16 channels
+      # and reduce 24 to 16 channels
+      if (skip.files == 0){
       # Function to get a total of 16 channels
       EEG.data <- standard.EEG.data (EEG.data, chan)
+      }
       
       # Window the time series data
       # Calculate the required number of splits
@@ -322,11 +327,14 @@ for (folder in folder.list) {
           # Take the 1st differentiation function of the time series
           EEG.channel <- diff(EEG.channel)
           
-          # Get summary statistics and append to feature vector
-          feature.vector <- feature.statistic(EEG.channel, prefix)
-          
-          # Get FFT statistics and append to feature vector
-          feature.vector <- feature.FFT(EEG.channel, prefix, frequency)
+          if (make.stat == 1){
+            # Get summary statistics and append to feature vector
+            feature.vector <- feature.statistic(EEG.channel, prefix)
+          }
+          if (make.fft == 1){
+            # Get FFT statistics and append to feature vector
+            feature.vector <- feature.FFT(EEG.channel, prefix, frequency)
+          }
         }
         
         # Add in sequence
@@ -350,13 +358,30 @@ for (folder in folder.list) {
         }
       }  # End loop for slices
     }  # End loop for files
-  }
+  } 
   
   # Drop rownames from results
   rownames(feature.vector.matrix) <- c()
   
-  # Normalise each feature
-  #feature.vector.matrix <- normalise.feature(feature.vector.matrix)
+  #Convert to data frame
+  feature.vector.matrix <- as.data.frame(feature.vector.matrix, stringsAsFactors = FALSE)
+  
+  # Number of columns
+  N <- ncol(feature.vector.matrix)
+  # Data columns to be coerced to numeric
+  # The last four columns are not data variables but labels
+  cols.num <- seq(1,N-4,1)
+  # Coerce data columns to numeric
+  feature.vector.matrix[cols.num] <- sapply(feature.vector.matrix[cols.num],as.numeric)
+  
+  # Split out data columns
+  header <- feature.vector.matrix[,(N-3):N]
+  
+  # Scale data columns to range 0 to 1
+  dat <- data.frame(lapply(feature.vector.matrix[,1:(N-4)], function(x)(x-min(x))/(max(x)-min(x))))
+  
+  # Bind back to header
+  feature.vector.matrix <- cbind(header, dat)
   
   # Save results as .rda object
   # Set save location
