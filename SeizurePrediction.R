@@ -97,7 +97,7 @@ parent.dir <- getwd()
 
 # Location for feature vectors if generating features
 # ARE YOU OVERWRITING ANY EXISTING FEATURES?
-feature.folder <- "Set_1"
+feature.folder <- "Set_1_B"
 # Location for test results if running algorithms
 # ARE YOU OVERWRITING ANY EXISTING RESULTS?
 results.folder <- "Run_1"
@@ -106,7 +106,7 @@ partition.feature.folder <- "Set_1"
 
 # Set this to choose which set of data to work on
 # Sample data, set = 1; full data, set = 0
-sample.data <- 1
+sample.data <- 0
 
 if (sample.data == 1){
   # Set subdirectory for feature vector results
@@ -117,7 +117,13 @@ if (sample.data == 1){
   data.dir <- paste0(parent.dir, '/Sample Data/')
 } else  { 
   # Set subdirectory for feature vector results
+<<<<<<< HEAD
   features.dir <- paste0('E:', '/Features/')  # Change drive letter as needed
+=======
+  features.dir <- paste0('H:', '/Features/',feature.folder)  # Change drive letter as needed
+  # Create folder
+  dir.create(path = features.dir, showWarnings = TRUE)
+>>>>>>> 9e5074edca3924f39854ace9bca5ff174ed1904c
   # Set working directory for full dataset (Drive letter may vary across machines)
   data.dir <- paste0('E:', '/Data/')  # Change drive letter as needed
 }
@@ -127,7 +133,7 @@ if (sample.data == 1){
 # Overlapping window, set = 1; non-overlapping, set = 0
 overlap <- 1
 
-# Set window size for file segmentatio (seconds), preferably factor of 600.
+# Set window size for file segmentation (seconds), preferably factor of 600.
 windowsize <- 60
 
 # Set training split
@@ -135,7 +141,7 @@ split <- 0.75
 
 # Skip files that do not have exactly 16 channels
 # Skip, set = 1; do not skip, set = 0
-skip.files <- 0
+skip.files <- 1
 
 # Make statistical features
 # Make, set = 1; do not make, set = 0
@@ -143,7 +149,7 @@ make.stat <- 1
 
 # Make spectral density features
 # Make, set = 1; do not make, set = 0
-make.fft <- 1
+make.fft <- 0
 
 ########################### PREPROCESSING - LABELLING FILES ##########################
 
@@ -173,7 +179,7 @@ make.fft <- 1
 # Construct EEG features and output a feature vector for the classifiers
 # Will be run each time features are generated or optimised
 
-#source ("MakeFeature.R")
+source ("MakeFeature.R")
 
 # Results are saved to a 'Features' folder, one matrix per patient
 

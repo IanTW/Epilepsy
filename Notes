@@ -74,7 +74,6 @@ Remove URLs where DOI is available
 
 Questions for Brendan
 
-
 Can I pad with zeroes or an average? How do I treat missing data?
 How do I classify the slices (simple majority?)
 
@@ -86,3 +85,17 @@ You can also do a QQplot
 qqnorm(x) versus a normal dist using qqnorm(rnorm(1000))
 5000 points of EEG channel is not normally distributed.
 See Kelleher textbook pp.93-94
+
+Feature Sets
+
+Files - All / Subset
+Window - 60
+Overlap - Overlap / No overlap
+Features - Stats / FFT
+
+Set 1A - All/60/Overlap/Stats        DONE
+Set 1B - Subset/60/Overlap/Stats     DONE
+
+Set 2A - All/60/Overlap/FFT
+Set 2B - Subset/60/Overlap/Stats
+
