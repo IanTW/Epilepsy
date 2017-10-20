@@ -117,9 +117,9 @@ if (sample.data == 1){
   data.dir <- paste0(parent.dir, '/Sample Data/')
 } else  { 
   # Set subdirectory for feature vector results
-  features.dir <- paste0('H:', '/Features/')  # Change drive letter as needed
+  features.dir <- paste0('E:', '/Features/')  # Change drive letter as needed
   # Set working directory for full dataset (Drive letter may vary across machines)
-  data.dir <- paste0('H:', '/Data/')  # Change drive letter as needed
+  data.dir <- paste0('E:', '/Data/')  # Change drive letter as needed
 }
 
 # Set this to choose overlapping or non-overlapping windows
