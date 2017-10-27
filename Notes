@@ -29,30 +29,21 @@ Graphics      - plots
 
 
 Keep in mind this is a classification comparison!!!!! Experiments should focus on this!!!!!!!!!!!!!
-Experimental Options:
 
-Window size
-Number of folds
+Experimental Options:
+Window size (60s/10s ....)
 Specific or non-specific [Train and test on Dog_1. Then see if Dog_1 can be used to predict others. Repeat for all patients.]
+Sets of features
+Types of validation (simple partition), kfold cross validation, leave one out cross validation
+Oversampling minority, undersampling majority, SMOTE
+
+
+
 
 To Do
 Figure out how to plot EEG with Matt Craddock - new library is not on CRAN and only has install instructions for Bash.
 Weekly progress report
 Read through Kaggle detection 2014 discussions for R coding ideas
-
-Dataset size
-Dog1 - 1006 files
-Dog2 - 1542 files
-Dog3 - 2416 files
-Dog4 - 1891 files
-Dog5 - 671 files
-Pat1 - 263 files
-Pat2 - 210 files
-Total 7999
-
-Signal processing packages:
-Spectral - meh
-spectral.methods - meh
 
 seewave - spectrogram and fundamental freq ('fund()') and dominant 'dfreq()'
 
@@ -74,7 +65,6 @@ Remove URLs where DOI is available
 
 Questions for Brendan
 
-Can I pad with zeroes or an average? How do I treat missing data?
 How do I classify the slices (simple majority?)
 
 Notes on Standard scores
@@ -96,6 +86,10 @@ Features - Stats / FFT
 Set 1A - All/60/Overlap/Stats        DONE
 Set 1B - Subset/60/Overlap/Stats     DONE
 
-Set 2A - All/60/Overlap/FFT
-Set 2B - Subset/60/Overlap/Stats
+Set 2A - All/60/Overlap/FFT          DONE
+Set 2B - Subset/60/Overlap/FFT       DONE
+
+Set 3A - All/60/Overlap/FFT + Stat      DONE
+Set 3B - Subset/60/Overlap/FFT + Stats  DONE
+
 
