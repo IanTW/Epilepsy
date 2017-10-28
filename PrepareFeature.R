@@ -27,10 +27,10 @@
 
 for (folder in folder.list){
 
-setwd('D:/Features/Set_1_A')
+setwd('E:/Features/Set_1_A')
 load (paste0(folder,"_features.rda"))
 df1 <- feature.vector.matrix
-setwd('D:/Features/Set_2_A')
+setwd('E:/Features/Set_2_A')
 load (paste0(folder,"_features.rda"))
 df2 <- feature.vector.matrix
 
@@ -40,13 +40,14 @@ df3 <- cbind(df1,df2)
 df <- df3[, c(1:84,89:312)]
 
 #Set output directory - does the directory exist?
-setwd('D:/Features/Set_3_A')
+setwd('E:/Features/Set_3_A')
 # Save to file
 save(df, file = paste0(folder,"_stat_plus_FFT_features.rda"))
 }
 
+# Make sure there is no existing copy already !!!
 # Combine all feature vectors into one dataframe
-setwd('D:/Features/Set_3_A')
+setwd('E:/Features/Set_3_A')
 # Get list of feature files
 listoffiles <- list.files()
 # Initialise object
@@ -85,20 +86,22 @@ file.label <- paste(trainsize, "_", testsize, sep = "")
 # Subset for training partition
 train.partition <- combined.feature[train.index, ]
 # Save to file
-setwd('D:/Partitions')
+setwd('E:/Partitions')
 save(train.partition, file = paste0("Simple_Train_Partition_",file.label,".rda"))
 
 # Subset for test partition
 test.partition <- combined.feature[-train.index, ]
 # Save to file
-save(test.partition, file = paste0("SimpleTestPartition_",file.label,".rda"))
+save(test.partition, file = paste0("Simple_Test_Partition_",file.label,".rda"))
 
 ######################################################################################
-
+# Check correct numbers of records
 
 nrow(combined.feature[combined.feature$CLASS == 'Preictal',])
-
-
 nrow(test.partition[test.partition$CLASS == 'Preictal',])
-
 nrow(train.partition[train.partition$CLASS == 'Preictal',])
+
+nrow(combined.feature[combined.feature$CLASS == 'Interictal',])
+nrow(test.partition[test.partition$CLASS == 'Interictal',])
+nrow(train.partition[train.partition$CLASS == 'Interictal',])
+

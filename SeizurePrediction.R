@@ -27,7 +27,8 @@ list.of.packages <- c("R.matlab",  # Handling *.mat files
                       "eegkit",    # Visualising EEG
                       "TSA",       # Time series tools
                       "moments",   # Statistical moments
-                      "caret")     # Data partitioning
+                      "caret",     # Data partitioning
+                      "e1071")     # SVM
 
 # Create list of required new packages
 new.packages <- list.of.packages[!(list.of.packages %in% 
@@ -100,7 +101,7 @@ parent.dir <- getwd()
 feature.folder <- "Set_1_A"
 # Location for test results if running algorithms
 # ARE YOU OVERWRITING ANY EXISTING RESULTS?
-results.folder <- "Run_1"
+results.folder <- "Results_1"
 # Location for feature vectors for combining and partitioning
 partition.feature.folder <- "Set_1"
 
@@ -117,14 +118,15 @@ if (sample.data == 1){
   data.dir <- paste0(parent.dir, '/Sample Data/')
 } else  { 
   # Set subdirectory for feature vector results
-
   features.dir <- paste0('E:', '/Features/',feature.folder)  # Change drive letter as needed
   # Create folder
   dir.create(path = features.dir, showWarnings = TRUE)
-
   # Set working directory for full dataset (Drive letter may vary across machines)
   data.dir <- paste0('E:', '/Data/')  # Change drive letter as needed
 }
+
+# Set directories for the data for modelling
+  partition.dir <- paste0('E:', '/Partitions')  # Change drive letter as needed
 
 # Set this to choose overlapping or non-overlapping windows
 # Warning!! For n windows almost doubles processing time: time*(2n-1)

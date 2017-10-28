@@ -21,12 +21,13 @@
 
 # This file should be called from the main code file SeizurePrediction.R
 
-# Set path to feature vectors
-feature.folder.path <- paste0(parent.dir, '/Features/', partition.feature.folder)
-setwd(feature.folder.path)
-
+# For simple partitioning with x:y split
 # Load training data
-load("TrainPartition.rda")
+setwd(partition.dir)
+load("Simple_Train_Partition_70_30.rda")
+# Load test data
+load("Simple_Test_Partition_70_30.rda")
+
 
 # Define 10-fold cross validation
 fitControl <- trainControl(method = "repeatedcv",
@@ -36,5 +37,18 @@ fitControl <- trainControl(method = "repeatedcv",
 #Model training ()
 ######################################################################################
 
+# SVM with caret
 
+control <- trainControl(...)
+
+
+svmModel <- train(train.partition, 
+                  train.partition$CLASS,
+                  method = "svmRadial",
+                  metric = "ROC")
+
+
+#SVM with E1071
+
+svmModel <- svm(CLASS~., data = train.partition)
 
