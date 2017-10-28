@@ -85,7 +85,7 @@ read.EEG.file <- function (filename) {
 ############################### SET PROJECT OPTIONS ##################################
 
 # Folder structures with patient EEG data files
-folder.list = c('Dog_1','Dog_2','Dog_3','Dog_4','Dog_5','Patient_1','Patient_2')
+folder.list = c('Dog_1', 'Dog_2', 'Dog_3', 'Dog_4', 'Dog_5', 'Patient_1', 'Patient_2')
 # Endode data file categories into a numerical annotation
 patient.num <- c('Dog_1' = 1, 'Dog_2' = 2, 'Dog_3' = 3,
                  'Dog_4' = 4, 'Dog_5' = 5, 'Patient_1' = 6,
@@ -97,11 +97,11 @@ parent.dir <- getwd()
 
 # Location for feature vectors if generating features
 # ARE YOU OVERWRITING ANY EXISTING FEATURES?
-feature.folder <- "Set_1_B"
+feature.folder <- "Set_1_A"
 # Location for test results if running algorithms
 # ARE YOU OVERWRITING ANY EXISTING RESULTS?
 results.folder <- "Run_1"
-# Location for of feature vectors for partitioning
+# Location for feature vectors for combining and partitioning
 partition.feature.folder <- "Set_1"
 
 # Set this to choose which set of data to work on
@@ -117,13 +117,11 @@ if (sample.data == 1){
   data.dir <- paste0(parent.dir, '/Sample Data/')
 } else  { 
   # Set subdirectory for feature vector results
-<<<<<<< HEAD
-  features.dir <- paste0('E:', '/Features/')  # Change drive letter as needed
-=======
-  features.dir <- paste0('H:', '/Features/',feature.folder)  # Change drive letter as needed
+
+  features.dir <- paste0('E:', '/Features/',feature.folder)  # Change drive letter as needed
   # Create folder
   dir.create(path = features.dir, showWarnings = TRUE)
->>>>>>> 9e5074edca3924f39854ace9bca5ff174ed1904c
+
   # Set working directory for full dataset (Drive letter may vary across machines)
   data.dir <- paste0('E:', '/Data/')  # Change drive letter as needed
 }
@@ -137,15 +135,15 @@ overlap <- 1
 windowsize <- 60
 
 # Set training split
-split <- 0.75
+split <- 0.70
 
 # Skip files that do not have exactly 16 channels
 # Skip, set = 1; do not skip, set = 0
-skip.files <- 1
+skip.files <- 0
 
 # Make statistical features
 # Make, set = 1; do not make, set = 0
-make.stat <- 1
+make.stat <- 0
 
 # Make spectral density features
 # Make, set = 1; do not make, set = 0
@@ -179,7 +177,7 @@ make.fft <- 0
 # Construct EEG features and output a feature vector for the classifiers
 # Will be run each time features are generated or optimised
 
-source ("MakeFeature.R")
+#source ("MakeFeature.R")
 
 # Results are saved to a 'Features' folder, one matrix per patient
 
@@ -188,7 +186,7 @@ source ("MakeFeature.R")
 # Create test/train partitions for the feature vectors
 # Will be run at least once each time features are generated or optimised
 
-#source ("PartitionFeature.R")
+#source ("PrepareFeature.R")
 
 ################################## DATA MODELING #####################################
 

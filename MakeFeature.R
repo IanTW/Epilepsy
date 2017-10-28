@@ -28,7 +28,7 @@
 
 # Variables for development to be deleted
 
-#folder <- "Dog_5"
+folder <- "Patient_1"
 #filename <- "Dog_5_interictal_segment_0446.mat"
 #slices <- 1
 #channels <- 1
@@ -143,9 +143,9 @@ standard.EEG.data <- function (EEG.data, chan){
   # Returns:
   #   EEG.data: Multichannel EEG data in a matrix with 16 channels total
   
-  # For the case of 15 channels, insert a row of zeroes
+  # For the case of 15 channels, insert a row based on the mean of the other ch.
   if (chan == 15){
-    EEG.data <- rbind(EEG.data, 0)
+    EEG.data <- rbind(EEG.data, colMeans(EEG.data))
   
   # In the case of 24 channels, randomly select 16    
   } else if (chan == 24){
@@ -257,7 +257,7 @@ for (folder in folder.list) {
   # Get list of files for processing
   list.of.files <- dir(patient.dir, "*.mat")
  
-  # If files are to be skipped if the number of channels != 16
+  # If files are to be skipped, if the number of channels != 16
   if (skip.files == 1){
     
     # Load metadata for data files
@@ -291,7 +291,7 @@ for (folder in folder.list) {
       # Get electrode labels
       labels <- EEG.file[["labels"]]
      
-      # If all files are to be included then 15 to 16 channels
+      # If all files are to be included then move 15 to 16 channels
       # and reduce 24 to 16 channels
       if (skip.files == 0){
       # Function to get a total of 16 channels
