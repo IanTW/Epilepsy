@@ -28,8 +28,8 @@
 
 # Variables for development to be deleted
 
-folder <- "Patient_1"
-#filename <- "Dog_5_interictal_segment_0446.mat"
+#folder <- "Dog_1"
+#filename <- "Dog_1_interictal_segment_0476.mat"
 #slices <- 1
 #channels <- 1
 #prefix <- "Chan_1"
@@ -286,11 +286,7 @@ for (folder in folder.list) {
       frequency <- round(EEG.file[["frequency"]], 0)
       # Get number of channels
       chan <- EEG.file[["channel"]]
-      # Get sequence number of file
-      sequence <- EEG.file[["sequence"]]
-      # Get electrode labels
-      labels <- EEG.file[["labels"]]
-     
+
       # If all files are to be included then move 15 to 16 channels
       # and reduce 24 to 16 channels
       if (skip.files == 0){
@@ -337,12 +333,8 @@ for (folder in folder.list) {
           }
         }
         
-        # Add in sequence
-        feature.vector['SEQ'] <- sequence
         # Add in ID
-        feature.vector['ID'] <- paste0(filename)
-        # Add in slice number
-        feature.vector['SLICE'] <- slices
+        feature.vector['ID'] <- paste0(filename, "_", slices)
         # Add in class label
         if(grepl("inter", feature.vector['ID'])){
           feature.vector['CLASS'] <- "Interictal"
@@ -350,7 +342,7 @@ for (folder in folder.list) {
           feature.vector['CLASS'] <- "Preictal"
         }
         
-        # Make training matrix
+        # Make matrix
         if(is.null(feature.vector.matrix)) {  # Copy first row if null
           feature.vector.matrix <- feature.vector  
         } else {  # Else rowbind to existing object
@@ -369,16 +361,19 @@ for (folder in folder.list) {
   # Number of columns
   N <- ncol(feature.vector.matrix)
   # Data columns to be coerced to numeric
-  # The last four columns are not data variables but labels
-  cols.num <- seq(1,N-4,1)
+  # The last column is not a data variable
+  cols.num <- seq(1,N-2,1)
   # Coerce data columns to numeric
   feature.vector.matrix[cols.num] <- sapply(feature.vector.matrix[cols.num],as.numeric)
   
   # Split out data columns
-  header <- feature.vector.matrix[,(N-3):N]
+  header <- feature.vector.matrix[,seq(N-1,N,1)] # Last two columns
   
   # Scale data columns to range 0 to 1
-  dat <- data.frame(lapply(feature.vector.matrix[,1:(N-4)], function(x)(x-min(x))/(max(x)-min(x))))
+  dat <- data.frame(lapply(feature.vector.matrix[,1:(N-2)], function(x)(x-min(x))/(max(x)-min(x))))
+  
+  # Round all columns to 3 decimal places
+  dat <-round(dat,3)
   
   # Bind back to header
   feature.vector.matrix <- cbind(header, dat)

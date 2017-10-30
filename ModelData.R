@@ -28,27 +28,32 @@ load("Simple_Train_Partition_70_30.rda")
 # Load test data
 load("Simple_Test_Partition_70_30.rda")
 
+# For reduced partitioning with x:y split
+# Load training data
+setwd(partition.dir)
+load("Reduced_Train_Partition_70_30.rda")
+# Load test data
+load("Reduced_Test_Partition_70_30.rda")
 
-# Define 10-fold cross validation
-fitControl <- trainControl(method = "repeatedcv",
-                           number = 10,  # Number of cross-folds
-                           repeats = 10) # Repeats of 10-fold CV
-
-#Model training ()
-######################################################################################
-
-# SVM with caret
-
-control <- trainControl(...)
-
-
-svmModel <- train(train.partition, 
-                  train.partition$CLASS,
-                  method = "svmRadial",
-                  metric = "ROC")
+# # Define 10-fold cross validation
+# fitControl <- trainControl(method = "repeatedcv",
+#                            number = 10,  # Number of cross-folds
+#                            repeats = 10) # Repeats of 10-fold CV
+# 
+# # SVM with caret
+# 
+# control <- trainControl(...)
+# 
+# 
+# svmModel <- train(train.partition, 
+#                   train.partition$CLASS,
+#                   method = "svmRadial",
+#                   metric = "ROC")
 
 
 #SVM with E1071
 
 svmModel <- svm(CLASS~., data = train.partition)
+
+svmPredict <- predict(svmModel, test.partition)
 

@@ -69,12 +69,6 @@ read.EEG.file <- function (filename) {
   EEG.file[["channel"]] <- as.numeric(nrow(a[[1]][[1]]))
   # EEG electrode labels 
   EEG.file[["labels"]] <- unlist(a[[1]][[4]])
-  # EEG sequence number if available or set to -1
-  if (length(a[[1]]) > 4) {
-    EEG.file[["sequence"]] <- as.numeric(a[[1]][[5]])
-  } else {
-    EEG.file[["sequence"]] <- -1
-  }
   # Remove object
   rm(a)
   # Garbage collection to reallocate memory
@@ -107,7 +101,7 @@ partition.feature.folder <- "Set_1"
 
 # Set this to choose which set of data to work on
 # Sample data, set = 1; full data, set = 0
-sample.data <- 0
+sample.data <- 1
 
 if (sample.data == 1){
   # Set subdirectory for feature vector results
@@ -126,7 +120,7 @@ if (sample.data == 1){
 }
 
 # Set directories for the data for modelling
-  partition.dir <- paste0('E:', '/Partitions')  # Change drive letter as needed
+  partition.dir <- paste0('H:', '/Partitions')  # Change drive letter as needed
 
 # Set this to choose overlapping or non-overlapping windows
 # Warning!! For n windows almost doubles processing time: time*(2n-1)
@@ -145,7 +139,7 @@ skip.files <- 0
 
 # Make statistical features
 # Make, set = 1; do not make, set = 0
-make.stat <- 0
+make.stat <- 1
 
 # Make spectral density features
 # Make, set = 1; do not make, set = 0

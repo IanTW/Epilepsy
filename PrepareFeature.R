@@ -74,25 +74,99 @@ n_interictal <- nrow(combined.feature[combined.feature$CLASS == "Interictal",])
 # Set random seed for reproducability
 set.seed(893)
 
+# Load combined feature vector
+setwd("H:/Features/Set_3_A")
+load("Combined_stat_plus_FFT_features.rda")
+
 # Create random data split
 train.index <- createDataPartition (combined.feature$CLASS,
                                         p = split,  # Set training size
                                         list = FALSE)
-# Set up label for files
+# Set up labels for files
 trainsize <- split*100
 testsize <- (1-split)*100
 file.label <- paste(trainsize, "_", testsize, sep = "")
+labtr <- "Simple_Train_Partition_"
+labte <- "Simple_Test_Partition_"
 
 # Subset for training partition
 train.partition <- combined.feature[train.index, ]
 # Save to file
-setwd('E:/Partitions')
-save(train.partition, file = paste0("Simple_Train_Partition_",file.label,".rda"))
+setwd('H:/Partitions')
+save(train.partition, file = paste0(labtr, file.label, ".rda"))
 
 # Subset for test partition
 test.partition <- combined.feature[-train.index, ]
 # Save to file
-save(test.partition, file = paste0("Simple_Test_Partition_",file.label,".rda"))
+save(test.partition, file = paste0(labte, file.label, ".rda"))
+
+######################################################################################
+# Set up simple partition based on Split variable and reduced majority class
+# Set random seed for reproducability
+set.seed(893)
+
+# Load combined feature vector
+setwd("H:/Features/Set_3_A")
+load("Combined_stat_plus_FFT_features.rda")
+
+# Number of preictal rows
+n_preictal <- nrow(combined.feature[combined.feature$CLASS == "Preictal",])
+
+# Subset data into preictal and interictal
+preictal.set <- combined.feature[combined.feature$CLASS == "Preictal",]
+interictal.set <- combined.feature[combined.feature$CLASS == "Interictal",]
+
+# Get random number of majority class records equal to minority class
+indices <- sample(nrow(combined.feature), n_preictal)
+# Subset interictal using random indices to reduce size of majority
+interictal.set <- interictal.set[indices,]
+
+# Merge two classes
+combined.reduced <- rbind(preictal.set, interictal.set)
+
+# Create random data split
+train.index <- createDataPartition (combined.reduced$CLASS,
+                                    p = split,  # Set training size
+                                    list = FALSE)
+# Set up label for files
+trainsize <- split*100
+testsize <- (1-split)*100
+file.label <- paste(trainsize, "_", testsize, sep = "")
+labtr <- "Reduced_Train_Partition_"
+labte <- "Reduced_Test_Partition_"
+
+# Subset for training partition
+train.partition <- combined.reduced[train.index, ]
+# Save to file
+setwd('H:/Partitions')
+save(train.partition, file = paste0(labtr, file.label, ".rda"))
+
+# Subset for test partition
+test.partition <- combined.reduced[-train.index, ]
+# Save to file
+save(test.partition, file = paste0(labte, file.label, ".rda"))
+
+######################################################################################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ######################################################################################
 # Check correct numbers of records
@@ -105,3 +179,4 @@ nrow(combined.feature[combined.feature$CLASS == 'Interictal',])
 nrow(test.partition[test.partition$CLASS == 'Interictal',])
 nrow(train.partition[train.partition$CLASS == 'Interictal',])
 
+######################################################################################
