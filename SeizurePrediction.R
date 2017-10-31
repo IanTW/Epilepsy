@@ -90,18 +90,19 @@ patient.num <- c('Dog_1' = 1, 'Dog_2' = 2, 'Dog_3' = 3,
 # Get working directory for code and data samples
 parent.dir <- getwd()
 
+# Set drive letter for portable data store
+portable <- "E:"
+
 # Location for feature vectors if generating features
 # ARE YOU OVERWRITING ANY EXISTING FEATURES?
 feature.folder <- "Set_1_A"
 # Location for test results if running algorithms
 # ARE YOU OVERWRITING ANY EXISTING RESULTS?
 results.folder <- "Results_1"
-# Location for feature vectors for combining and partitioning
-partition.feature.folder <- "Set_1"
 
 # Set this to choose which set of data to work on
 # Sample data, set = 1; full data, set = 0
-sample.data <- 1
+sample.data <- 0
 
 if (sample.data == 1){
   # Set subdirectory for feature vector results
@@ -112,15 +113,15 @@ if (sample.data == 1){
   data.dir <- paste0(parent.dir, '/Sample Data/')
 } else  { 
   # Set subdirectory for feature vector results
-  features.dir <- paste0('E:', '/Features/',feature.folder)  # Change drive letter as needed
+  features.dir <- paste0(portable, '/Features/',feature.folder)  # Change drive letter as needed
   # Create folder
   dir.create(path = features.dir, showWarnings = TRUE)
   # Set working directory for full dataset (Drive letter may vary across machines)
-  data.dir <- paste0('E:', '/Data/')  # Change drive letter as needed
+  data.dir <- paste0(portable, '/Data/')  # Change drive letter as needed
 }
 
 # Set directories for the data for modelling
-  partition.dir <- paste0('H:', '/Partitions')  # Change drive letter as needed
+  partition.dir <- paste0(portable, '/Partitions')  # Change drive letter as needed
 
 # Set this to choose overlapping or non-overlapping windows
 # Warning!! For n windows almost doubles processing time: time*(2n-1)
@@ -139,7 +140,7 @@ skip.files <- 0
 
 # Make statistical features
 # Make, set = 1; do not make, set = 0
-make.stat <- 1
+make.stat <- 0
 
 # Make spectral density features
 # Make, set = 1; do not make, set = 0
