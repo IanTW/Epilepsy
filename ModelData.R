@@ -35,6 +35,23 @@ load("Reduced_Train_Partition_70_30.rda")
 # Load test data
 load("Reduced_Test_Partition_70_30.rda")
 
+#SVM with E1071
+N <- ncol(train.partition)
+
+# Training
+
+system.time(svmModel <- svm(train.partition[,c(3:N)],  # Choose columns for features
+                train.partition$CLASS,  # Class labels
+                probability = TRUE))  # Calculate probabilities
+
+#Testing
+system.time(svmPredict <- predict(svmModel,  # Trained model
+                      test.partition[,c(3:N)],  # Choose culumns for features
+                      probability = TRUE))  # Calculate probabilities
+
+
+
+
 # # Define 10-fold cross validation
 # fitControl <- trainControl(method = "repeatedcv",
 #                            number = 10,  # Number of cross-folds
@@ -49,11 +66,3 @@ load("Reduced_Test_Partition_70_30.rda")
 #                   train.partition$CLASS,
 #                   method = "svmRadial",
 #                   metric = "ROC")
-
-
-#SVM with E1071
-
-svmModel <- svm(CLASS~., data = train.partition)
-
-svmPredict <- predict(svmModel, test.partition)
-
