@@ -91,7 +91,7 @@ patient.num <- c('Dog_1' = 1, 'Dog_2' = 2, 'Dog_3' = 3,
 parent.dir <- getwd()
 
 # Set drive letter for portable data store
-portable <- "E:"
+portable <- "H:/"
 
 # Location for feature vectors if generating features
 # ARE YOU OVERWRITING ANY EXISTING FEATURES?

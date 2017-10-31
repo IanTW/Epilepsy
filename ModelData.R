@@ -38,6 +38,14 @@ load("Reduced_Test_Partition_70_30.rda")
 #SVM with E1071
 N <- ncol(train.partition)
 
+# Copy the IDs
+train.ident <- train.partition[,1:2] 
+test.ident <- test.partition[,1:2]
+
+# Drop ID
+train.partition$ID <- NULL
+test.partition$ID <- NULL
+
 # Training
 
 system.time(svmModel <- svm(train.partition[,c(3:N)],  # Choose columns for features
@@ -47,9 +55,16 @@ system.time(svmModel <- svm(train.partition[,c(3:N)],  # Choose columns for feat
 #Testing
 system.time(svmPredict <- predict(svmModel,  # Trained model
                       test.partition[,c(3:N)],  # Choose culumns for features
-                      probability = TRUE))  # Calculate probabilities
+                      probability = TRUE))  # Calculate probabilities                                                                                                                     ui95
+
+#Save result
+setwd(paste0(portable, "Results"))
+save(svmModel, file = "SVM_model_simple_70_30_stat_plus_fft.rda")
+save(svmPredict, file = "SVM_precit_simple_70_30_stat_plus_fft.rda")
 
 
+# Probabilities give row names - bind back using merge with by = 0
+# See https://stackoverflow.com/questions/7739578/merge-data-frames-based-on-rownames-in-r
 
 
 # # Define 10-fold cross validation
