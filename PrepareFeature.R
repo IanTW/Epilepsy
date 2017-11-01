@@ -27,10 +27,10 @@
 
 for (folder in folder.list){
 
-setwd('E:/Features/Set_1_A')
+setwd('E:/Features/Set_1')
 load (paste0(folder,"_features.rda"))
 df1 <- feature.vector.matrix
-setwd('E:/Features/Set_2_A')
+setwd('E:/Features/Set_2')
 load (paste0(folder,"_features.rda"))
 df2 <- feature.vector.matrix
 
@@ -40,14 +40,14 @@ df3 <- cbind(df1,df2)
 df <- df3[, c(1:84,89:312)]
 
 #Set output directory - does the directory exist?
-setwd('E:/Features/Set_3_A')
+setwd('E:/Features/Set_3')
 # Save to file
 save(df, file = paste0(folder,"_stat_plus_FFT_features.rda"))
 }
 
 # Make sure there is no existing copy already !!!
 # Combine all feature vectors into one dataframe
-setwd('E:/Features/Set_3_A')
+setwd('E:/Features/Set_3')
 # Get list of feature files
 listoffiles <- list.files()
 # Initialise object
@@ -74,7 +74,7 @@ n_interictal <- nrow(combined.feature[combined.feature$CLASS == "Interictal",])
 # Set up simple partition based on split ratio WITH ALL DATA FILES
 
 # Load combined feature vector
-setwd(paste0(portable,"/Features/Set_3_A"))
+setwd(paste0(portable,"/Features/Set_3"))
 load("Combined_stat_plus_FFT_features.rda")
 
 # Load metadata file
@@ -139,12 +139,6 @@ for (files in testing.files){
   i = i + 1  
 }
 
-# Add numeric ID
-train.partition$NID <- seq.int(nrow(train.partition))
-train.partition <- train.partition[,c(307,1,2,3:306)]
-test.partition$NID <- seq.int(nrow(test.partition))
-test.partition <- test.partition[,c(307,1,2,3:306)]
-
 # Set up labels for files
 trainsize <- split*100
 testsize <- (1-split)*100
@@ -153,7 +147,7 @@ labtr <- "Simple_Train_Partition_"
 labte <- "Simple_Test_Partition_"
 
 # Save to file
-setwd(paste0(portable, "/Partitions"))
+setwd(partition.folder)
 save(train.partition, file = paste0(labtr, file.label, ".rda"))
 save(test.partition, file = paste0(labte, file.label, ".rda"))
 
@@ -162,7 +156,7 @@ save(test.partition, file = paste0(labte, file.label, ".rda"))
 # Set up simple partition based on split ratio WITH REDUCED DATA FILES
 
 # Load combined feature vector
-setwd(paste0(portable,"/Features/Set_3_A"))
+setwd(paste0(portable,"/Features/Set_3"))
 load("Combined_stat_plus_FFT_features.rda")
 
 # Load metadata file
@@ -235,12 +229,6 @@ for (files in testing.files){
   i = i + 1  
 }
 
-# Add numeric ID
-train.partition$NID <- seq.int(nrow(train.partition))
-train.partition <- train.partition[,c(307,1,2,3:306)]
-test.partition$NID <- seq.int(nrow(test.partition))
-test.partition <- test.partition[,c(307,1,2,3:306)]
-
 # Set up labels for files
 trainsize <- split*100
 testsize <- (1-split)*100
@@ -249,7 +237,7 @@ labtr <- "Reduced_Train_Partition_"
 labte <- "Reduced_Test_Partition_"
 
 # Save to file
-setwd(paste0(portable, "/Partitions"))
+setwd(partition.folder)
 save(train.partition, file = paste0(labtr, file.label, ".rda"))
 save(test.partition, file = paste0(labte, file.label, ".rda"))
 
@@ -257,12 +245,12 @@ save(test.partition, file = paste0(labte, file.label, ".rda"))
 
 # Check correct numbers of records
 
-setwd(paste0(portable,"/Features/Set_3_A"))
+setwd(paste0(portable,"/Features/Set_3"))
 load("Combined_stat_plus_FFT_features.rda")
 nrow(combined.feature[combined.feature$CLASS == 'Preictal',])
 nrow(combined.feature[combined.feature$CLASS == 'Interictal',])
 
-setwd(paste0(portable, "/Partitions"))
+setwd(partition.folder)
 load("Reduced_Test_Partition_70_30.rda")
 load("Reduced_Train_Partition_70_30.rda")
 
@@ -278,6 +266,5 @@ nrow(test.partition[test.partition$CLASS == 'Interictal',])
 nrow(train.partition[train.partition$CLASS == 'Interictal',])
 nrow(test.partition[test.partition$CLASS == 'Preictal',])
 nrow(train.partition[train.partition$CLASS == 'Preictal',])
-
 
 ######################################################################################

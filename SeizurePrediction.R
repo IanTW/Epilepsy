@@ -23,12 +23,14 @@
 
 # Install and load required R packages 
 # List of required packages
-list.of.packages <- c("R.matlab",  # Handling *.mat files
-                      "eegkit",    # Visualising EEG
-                      "TSA",       # Time series tools
-                      "moments",   # Statistical moments
-                      "caret",     # Data partitioning
-                      "e1071")     # SVM
+list.of.packages <- c("R.matlab",    # Handling *.mat files
+                      "eegkit",      # Visualising EEG
+                      "TSA",         # Time series tools
+                      "moments",     # Statistical moments
+                      "caret",       # Data partitioning
+                      "e1071",       # SVM modeling
+                      "data.table",  # Summarise data
+                      "ROCR")        # Performance evaluation
 
 # Create list of required new packages
 new.packages <- list.of.packages[!(list.of.packages %in% 
@@ -91,14 +93,18 @@ patient.num <- c('Dog_1' = 1, 'Dog_2' = 2, 'Dog_3' = 3,
 parent.dir <- getwd()
 
 # Set drive letter for portable data store
-portable <- "H:/"
+portable <- "D:/"
 
 # Location for feature vectors if generating features
 # ARE YOU OVERWRITING ANY EXISTING FEATURES?
-feature.folder <- "Set_1_A"
-# Location for test results if running algorithms
+feature.folder <- "Set_X"
+
+# Location for test results
 # ARE YOU OVERWRITING ANY EXISTING RESULTS?
-results.folder <- "Results_1"
+results.folder <- "Results"
+
+# Set directories for the data for modelling
+partition.folder <- paste0(portable, 'Partitions')  # Change drive letter as needed
 
 # Set this to choose which set of data to work on
 # Sample data, set = 1; full data, set = 0
@@ -120,13 +126,15 @@ if (sample.data == 1){
   data.dir <- paste0(portable, '/Data/')  # Change drive letter as needed
 }
 
-# Set directories for the data for modelling
-  partition.dir <- paste0(portable, '/Partitions')  # Change drive letter as needed
-
 # Set this to choose overlapping or non-overlapping windows
+# Hard coded to 50% overlap between windows
 # Warning!! For n windows almost doubles processing time: time*(2n-1)
 # Overlapping window, set = 1; non-overlapping, set = 0
 overlap <- 1
+
+# For 50% overlapping windows
+# Number of slices = ((time/windowsize) * 2) - 1
+slice.num <- (600/60)*2-1
 
 # Set window size for file segmentation (seconds), preferably factor of 600.
 windowsize <- 60
@@ -176,14 +184,17 @@ make.fft <- 0
 
 #source ("MakeFeature.R")
 
-# Results are saved to a 'Features' folder, one matrix per patient
+# Results are saved to 'Features' folder
 
-################################ DATA PARTITIONING ###################################
+################################ FEATURE PREPARATION #################################
 
-# Create test/train partitions for the feature vectors
+# Merge feature vectors for patients and feature types
+# Create test/train partitions for modelling
 # Will be run at least once each time features are generated or optimised
 
 #source ("PrepareFeature.R")
+
+# Results are saved to 'Partitions' folder
 
 ################################## DATA MODELING #####################################
 
@@ -191,6 +202,8 @@ make.fft <- 0
 # Will be run at least once each time features are generated or optimised
 
 #source ("ModelData.R")
+
+
 
 #################################### END CODE ########################################
 

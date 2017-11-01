@@ -1,6 +1,6 @@
 ######################################################################################
 # File Name: ModelData.R                                                             #
-# Purpose: Data modeling with SVM, Neural Networks and baseline GLM                                                            #
+# Purpose: Data modeling with SVM & Neural Networks                                  #
 #                                                                                    #
 # Author: Ian Watson                                                                 #
 # Email1: d13128934@mydit.ie                                                         #
@@ -21,63 +21,103 @@
 
 # This file should be called from the main code file SeizurePrediction.R
 
-# For simple partitioning with x:y split
-# Load training data
-setwd(partition.dir)
-load("Simple_Train_Partition_70_30.rda")
-# Load test data
-load("Simple_Test_Partition_70_30.rda")
+################################### LOAD PARTITION ###################################
 
-# For reduced partitioning with x:y split
+# For normal partitioning with x:y split
 # Load training data
-setwd(partition.dir)
-load("Reduced_Train_Partition_70_30.rda")
+setwd(partition.folder)
+load("Normal_Train_Partition_70_30.rda")
 # Load test data
-load("Reduced_Test_Partition_70_30.rda")
+load("Normal_Test_Partition_70_30.rda")
 
-#SVM with E1071
+# or
+
+# For downsampled majority partitioning with x:y split
+# Load training data
+load("Downsample_Majority_Train_Partition_70_30.rda")
+# Load test data
+load("Downsample_Majority_Test_Partition_70_30.rda")
+
+# or
+
+# For upsampled minority partitioning with x:y split
+# etc
+# etc
+
+##################################### SVM MODELING ###################################
+
+# Number columns
 N <- ncol(train.partition)
 
-# Copy the IDs
-train.ident <- train.partition[,1:2] 
-test.ident <- test.partition[,1:2]
-
-# Drop ID
-train.partition$ID <- NULL
-test.partition$ID <- NULL
-
-# Training
-
+# SVM modelling
+# Training with e1071 package
 system.time(svmModel <- svm(train.partition[,c(3:N)],  # Choose columns for features
                 train.partition$CLASS,  # Class labels
                 probability = TRUE))  # Calculate probabilities
 
-#Testing
+# Predicting
 system.time(svmPredict <- predict(svmModel,  # Trained model
                       test.partition[,c(3:N)],  # Choose culumns for features
                       probability = TRUE))  # Calculate probabilities                                                                                                                     ui95
 
-#Save result
-setwd(paste0(portable, "Results"))
-save(svmModel, file = "SVM_model_simple_70_30_stat_plus_fft.rda")
-save(svmPredict, file = "SVM_precit_simple_70_30_stat_plus_fft.rda")
+# Save model and prediction results
+setwd(results.folder)
+save(svmModel, file = "SVM_model_normal_70_30_stat_plus_fft.rda")
+save(svmPredict, file = "SVM_predict_normal_70_30_stat_plus_fft.rda")
 
+#################################### GET RESULTS ####################################
 
-# Probabilities give row names - bind back using merge with by = 0
-# See https://stackoverflow.com/questions/7739578/merge-data-frames-based-on-rownames-in-r
+# Load training data
+setwd(partition.folder)
+load("Normal_Train_Partition_70_30.rda")
+# Load test data
+load("Normal_Test_Partition_70_30.rda")
 
+# Load models
+setwd(results.folder)
+load("SVM_model_normal_70_30_stat_plus_fft.rda")
+load("SVM_predict_normal_70_30_stat_plus_fft.rda")
 
-# # Define 10-fold cross validation
-# fitControl <- trainControl(method = "repeatedcv",
-#                            number = 10,  # Number of cross-folds
-#                            repeats = 10) # Repeats of 10-fold CV
-# 
-# # SVM with caret
-# 
-# control <- trainControl(...)
-# 
-# 
-# svmModel <- train(train.partition, 
-#                   train.partition$CLASS,
-#                   method = "svmRadial",
-#                   metric = "ROC")
+# Get probabilities from prediction
+probs <- attr(svmPredict, "probabilities")
+# Bind with test data to get original file identities
+test.partition.prob <- cbind(probs, test.partition)
+
+# Remove slice number from ID
+test.partition.prob$ID <- paste0(read.table(text = test.partition.prob$ID,
+                                            sep = ".",
+                                            as.is = TRUE)$V1,
+                                 ".mat")
+
+# Convert to data.table
+test.partition.prob <- as.data.table(test.partition.prob)
+
+# Summarise to get total probability across all slices for each data file
+results <- test.partition.prob[,.(PreictalProb = sum(Preictal)/slice.num,
+                             InterictalProb = sum(Interictal)/slice.num),
+                          by =.(ID)]
+
+# Create predicted label based on highest probability
+results$Prediction <- factor(ifelse(results$PreictalProb > results$InterictalProb,
+                                    "Preictal", "Interictal"))
+
+# Create truth label based on the filename
+results$Truth <- factor(ifelse(grepl("inter", results$ID), "Interictal", "Preictal"))
+
+# Get confusion matrix
+confusion <- table(results$Prediction, results$Truth)
+
+# Uses ROCR package
+# Initialise object
+auc <- c()
+# Get probabilities
+auc$predictions <- results$PreictalProb
+# Get labels
+auc$label <- ifelse(results$Truth == "Preictal", 1, 0)
+# Create prediction object
+pred <- prediction(auc$predictions, auc$label)
+# Get performance measure TPR and FPR 
+perf <- performance(pred,"tpr","fpr")
+# Plot measures
+#plot(perf)
+
