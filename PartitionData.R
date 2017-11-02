@@ -1,5 +1,5 @@
 ######################################################################################
-# File Name: PrepareFeature.R                                                        #
+# File Name: PartitionData.R                                                        #
 # Purpose: Combine feature vectors & create test/train partitions                    #
 #                                                                                    #
 # Author: Ian Watson                                                                 #
@@ -21,33 +21,98 @@
 
 # This file should be called from the main code file SeizurePrediction.R
 
-# Combine Statistics and FFT features per patient
+######################################################################################
+# SET 1
+
+# Combine Statistics features per patient into a single object
+# This code is specfic for the folders and number of features
+# It cannot be run generically
+
+# Make sure there is no existing copy already !!!
+# Combine all feature vectors into one dataframe
+setwd(paste0(portable, "Features/Set_1"))
+# Get list of feature files
+listoffiles <- list.files()
+# Initialise object
+combined.feature <- c()
+
+# Loop for all feature files
+for (filename in listoffiles){
+  # Load file
+  load(filename)
+  # Row bind
+  combined.feature <- rbind(combined.feature, feature.vector.matrix)
+}
+
+combined.feature$CLASS <- as.factor(combined.feature$CLASS)
+save(combined.feature, file = "Combined_stat_features.rda")
+
+# Number of preictal rows
+n_preictal <- nrow(combined.feature[combined.feature$CLASS == "Preictal",])
+# Number of interictal rows
+n_interictal <- nrow(combined.feature[combined.feature$CLASS == "Interictal",])
+
+#######################################################################################
+# SET 2
+# Combine FFT features per patient into a single object
+# This code is specfic for the folders and number of features
+# It cannot be run generically
+
+# Make sure there is no existing copy already !!!
+# Combine all feature vectors into one dataframe
+setwd(paste0(portable, "Features/Set_2"))
+# Get list of feature files
+listoffiles <- list.files()
+# Initialise object
+combined.feature <- c()
+
+# Loop for all feature files
+for (filename in listoffiles){
+  # Load file
+  load(filename)
+  # Row bind
+  combined.feature <- rbind(combined.feature, feature.vector.matrix)
+}
+
+combined.feature$CLASS <- as.factor(combined.feature$CLASS)
+save(combined.feature, file = "Combined_FFT_features.rda")
+
+# Number of preictal rows
+n_preictal <- nrow(combined.feature[combined.feature$CLASS == "Preictal",])
+# Number of interictal rows
+n_interictal <- nrow(combined.feature[combined.feature$CLASS == "Interictal",])
+
+#######################################################################################
+# Set 3
+# Combine Statistics and FFT features per patient into a single object
 # This code is specfic for the folders and number of features
 # It cannot be run generically
 
 for (folder in folder.list){
-
-setwd('E:/Features/Set_1')
-load (paste0(folder,"_features.rda"))
-df1 <- feature.vector.matrix
-setwd('E:/Features/Set_2')
-load (paste0(folder,"_features.rda"))
-df2 <- feature.vector.matrix
-
-# Bind
-df3 <- cbind(df1,df2)
-# Drop duplicate header columns
-df <- df3[, c(1:84,89:312)]
-
-#Set output directory - does the directory exist?
-setwd('E:/Features/Set_3')
-# Save to file
-save(df, file = paste0(folder,"_stat_plus_FFT_features.rda"))
+  
+  # Get Statistics features
+  setwd(paste0(portable, "Features/Set_1"))
+  load (paste0(folder,"_features.rda"))
+  df1 <- feature.vector.matrix
+  # Get FFT features
+  setwd(paste0(portable, "Features/Set_2"))
+  load (paste0(folder,"_features.rda"))
+  df2 <- feature.vector.matrix
+  
+  # Bind
+  df3 <- cbind(df1,df2)
+  # Drop duplicate header columns
+  df <- df3[, c(1:84,89:312)]
+  
+  #Set output directory - does the directory exist?
+  setwd(paste0(portable, "Features/Set_3"))
+  # Save to file
+  save(df, file = paste0(folder,"_stat_plus_FFT_features.rda"))
 }
 
 # Make sure there is no existing copy already !!!
 # Combine all feature vectors into one dataframe
-setwd('E:/Features/Set_3')
+setwd(paste0(portable, "Features/Set_3"))
 # Get list of feature files
 listoffiles <- list.files()
 # Initialise object
@@ -71,21 +136,25 @@ n_interictal <- nrow(combined.feature[combined.feature$CLASS == "Interictal",])
 
 #######################################################################################
 
-# Set up simple partition based on split ratio WITH ALL DATA FILES
+# Set up normal partition based on split ratio WITH ALL DATA FILES
 
 # Load combined feature vector
-setwd(paste0(portable,"/Features/Set_3"))
-load("Combined_stat_plus_FFT_features.rda")
+#setwd(paste0(portable,"/Features/Set_1"))
+#load("Combined_stat_features.rda")
+setwd(paste0(portable,"/Features/Set_2"))
+load("Combined_FFT_features.rda")
+#setwd(paste0(portable,"/Features/Set_3"))
+#load("Combined_stat_plus_FFT_features.rda")
 
 # Load metadata file
 setwd(data.dir)
 load("metadata.rda")
 
-#List of preictal files
+# List of files
 preictal.files <- meta.data.results[grep("preictal", meta.data.results$filename),]
 interictal.files <- meta.data.results[grep("interictal", meta.data.results$filename),]
 
-# Split files according to desired ratio
+# Calculate number of files in each partition
 n.train.preictal <- round(nrow(preictal.files)*split,0)  # Total files * split
 n.test.preictal <- nrow(preictal.files) - n.train.preictal # The remaining files
 
@@ -119,7 +188,7 @@ testing.files <- c(test.preictal.files, test.interictal.files)
 
 # Training data
 train.partition <-c()
-i <- 1
+i <- 1  # For console output
 
 for (files in training.files){
   cat(files," ", i , "\n")
@@ -130,7 +199,7 @@ for (files in training.files){
 
 # Testing data
 test.partition <-c()
-i <- 1
+i <- 1  # For console output
 
 for (files in testing.files){
   cat(files," ", i , "\n")
@@ -142,18 +211,19 @@ for (files in testing.files){
 # Set up labels for files
 trainsize <- split*100
 testsize <- (1-split)*100
-file.label <- paste(trainsize, "_", testsize, sep = "")
-labtr <- "Simple_Train_Partition_"
-labte <- "Simple_Test_Partition_"
+labsp <- paste(trainsize, "_", testsize, sep = "")
+labfe <- "FFT_"
+labtr <- "Normal_Train_Partition_"
+labte <- "Normal_Test_Partition_"
 
 # Save to file
-setwd(partition.folder)
-save(train.partition, file = paste0(labtr, file.label, ".rda"))
-save(test.partition, file = paste0(labte, file.label, ".rda"))
+setwd(paste0(portable, "Partitions"))
+save(train.partition, file = paste0(labfe, labtr, labsp, ".rda"))
+save(test.partition, file = paste0(labfe, labte, labsp, ".rda"))
 
 ######################################################################################
 
-# Set up simple partition based on split ratio WITH REDUCED DATA FILES
+# Set up partition based on split ratio WITH REDUCED MAJORITY
 
 # Load combined feature vector
 setwd(paste0(portable,"/Features/Set_3"))

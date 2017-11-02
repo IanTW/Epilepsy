@@ -119,11 +119,11 @@ if (sample.data == 1){
   data.dir <- paste0(parent.dir, '/Sample Data/')
 } else  { 
   # Set subdirectory for feature vector results
-  features.dir <- paste0(portable, '/Features/',feature.folder)  # Change drive letter as needed
+  features.dir <- paste0(portable, 'Features/',feature.folder)  # Change drive letter as needed
   # Create folder
   dir.create(path = features.dir, showWarnings = TRUE)
   # Set working directory for full dataset (Drive letter may vary across machines)
-  data.dir <- paste0(portable, '/Data/')  # Change drive letter as needed
+  data.dir <- paste0(portable, 'Data/')  # Change drive letter as needed
 }
 
 # Set this to choose overlapping or non-overlapping windows
@@ -186,13 +186,13 @@ make.fft <- 0
 
 # Results are saved to 'Features' folder
 
-################################ FEATURE PREPARATION #################################
+################################ DATA PARTITIONING ###################################
 
 # Merge feature vectors for patients and feature types
 # Create test/train partitions for modelling
 # Will be run at least once each time features are generated or optimised
 
-#source ("PrepareFeature.R")
+#source ("PartitionData.R")
 
 # Results are saved to 'Partitions' folder
 
