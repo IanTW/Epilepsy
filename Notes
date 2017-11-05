@@ -56,16 +56,13 @@ fftfilt
 tune R -spectral components made for audio i think
 wavelets
 
-Code to do 
-Cross validation 
-
 Report to do
 References - check DOI has been added in Zotero before export
 Remove URLs where DOI is available
 
 Questions for Brendan
 
-How do I classify the slices (simple majority?)
+
 
 Notes on Standard scores
 If you want to use standard scores there is an assumption of a normal dist.
