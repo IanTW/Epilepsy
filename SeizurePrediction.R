@@ -101,7 +101,7 @@ feature.folder <- "Set_X"
 
 # Location for test results
 # ARE YOU OVERWRITING ANY EXISTING RESULTS?
-results.folder <- "Results"
+results.folder <- paste0(portable, 'Results')
 
 # Set directories for the data for modelling
 partition.folder <- paste0(portable, 'Partitions')  # Change drive letter as needed
@@ -202,8 +202,6 @@ make.fft <- 0
 # Will be run at least once each time features are generated or optimised
 
 #source ("ModelData.R")
-
-
 
 #################################### END CODE ########################################
 
