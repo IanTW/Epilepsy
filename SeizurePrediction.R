@@ -30,7 +30,9 @@ list.of.packages <- c("R.matlab",    # Handling *.mat files
                       "caret",       # Data partitioning
                       "e1071",       # SVM modeling
                       "data.table",  # Summarise data
-                      "ROCR")        # Performance evaluation
+                      "ROCR",        # Performance evaluation
+                      "DMwR",        # SMOTE
+                      "nnet")        # Neural network modeling
 
 # Create list of required new packages
 new.packages <- list.of.packages[!(list.of.packages %in% 
@@ -93,7 +95,7 @@ patient.num <- c('Dog_1' = 1, 'Dog_2' = 2, 'Dog_3' = 3,
 parent.dir <- getwd()
 
 # Set drive letter for portable data store
-portable <- "D:/"
+portable <- "H:/"
 
 # Location for feature vectors if generating features
 # ARE YOU OVERWRITING ANY EXISTING FEATURES?

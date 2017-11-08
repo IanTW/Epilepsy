@@ -226,23 +226,28 @@ save(test.partition, file = paste0(labfe, labte, labsp, ".rda"))
 # Set up partition based on split ratio WITH REDUCED MAJORITY
 
 # Load combined feature vector
-setwd(paste0(portable,"/Features/Set_3"))
-load("Combined_stat_plus_FFT_features.rda")
+#setwd(paste0(portable,"/Features/Set_1"))
+#load("Combined_stat_features.rda")
+setwd(paste0(portable,"/Features/Set_2"))
+load("Combined_FFT_features.rda")
+#setwd(paste0(portable,"/Features/Set_3"))
+#load("Combined_stat_plus_FFT_features.rda")
 
 # Load metadata file
 setwd(data.dir)
 load("metadata.rda")
 
-#List of preictal and interictal files
+# List of preictal and interictal files
 preictal.files <- meta.data.results[grep("preictal", meta.data.results$filename),]
 interictal.files <- meta.data.results[grep("interictal", meta.data.results$filename),]
 
+# Number of preictal files
 n_preictal <- nrow(preictal.files)
 
 # Set random seed for reproducability
 set.seed(379)
 
-#Reduce number of interictal files to match preictal
+# Reduce number of interictal files to match preictal
 interictal.files <- interictal.files[sample(nrow(interictal.files), n_preictal),]
 
 # Split files according to desired ratio
@@ -302,104 +307,55 @@ for (files in testing.files){
 # Set up labels for files
 trainsize <- split*100
 testsize <- (1-split)*100
-file.label <- paste(trainsize, "_", testsize, sep = "")
+labsp <- paste(trainsize, "_", testsize, sep = "")
+labfe <- "FFT_"
 labtr <- "Reduced_Train_Partition_"
 labte <- "Reduced_Test_Partition_"
 
 # Save to file
-setwd(partition.folder)
-save(train.partition, file = paste0(labtr, file.label, ".rda"))
-save(test.partition, file = paste0(labte, file.label, ".rda"))
+setwd(paste0(portable, "Partitions"))
+save(train.partition, file = paste0(labfe, labtr, labsp, ".rda"))
+save(test.partition, file = paste0(labfe, labte, labsp, ".rda"))
 
 ######################################################################################
 
 # Set up partition based on split ratio WITH BOOSTED MINORITY
 
-# Load combined feature vector
-setwd(paste0(portable,"/Features/Set_3"))
-load("Combined_stat_plus_FFT_features.rda")
+# Load normal training partition
+setwd(partition.folder)
 
-# Load metadata file
-setwd(data.dir)
-load("metadata.rda")
+#train.filename <- "Stat_Normal_Train_Partition_70_30.rda"                       
+#train.filename <- "FFT_Normal_Train_Partition_70_30.rda"                    
+train.filename <-"Stat_plus_FFT_Normal_Train_Partition_70_30.rda"
+load(train.filename)
 
-#List of preictal and interictal files
-preictal.files <- meta.data.results[grep("preictal", meta.data.results$filename),]
-interictal.files <- meta.data.results[grep("interictal", meta.data.results$filename),]
+#test.filename <- "Stat_Normal_Test_Partition_70_30.rda"                       
+#test.filename <- "FFT_Normal_Test_Partition_70_30.rda"                    
+test.filename <-"Stat_plus_FFT_Normal_Test_Partition_70_30.rda"
+load(test.filename)
 
-n_preictal <- nrow(preictal.files)
+# Drop ID
+train.partition$ID <- NULL
 
-# Set random seed for reproducability
-set.seed(379)
+# SMOTE
+train.partition$CLASS <- as.factor(train.partition$CLASS)
+train.partition <- SMOTE(CLASS ~ ., train.partition, perc.over = 1250, perc.under=108)
 
-#Reduce number of interictal files to match preictal
-interictal.files <- interictal.files[sample(nrow(interictal.files), n_preictal),]
-
-# Split files according to desired ratio
-n.train.preictal <- round(nrow(preictal.files)*split,0)  # Total files * split
-n.test.preictal <- nrow(preictal.files) - n.train.preictal # The remaining files
-
-n.train.interictal <- round(nrow(interictal.files)*split,0)  # Total files * split
-n.test.interictal <- nrow(interictal.files) - n.train.interictal # The remaining files
-
-# Set random seed for reproducability
-set.seed(893)
-# Create random data split for preictal
-train.preictal.indices <- sample(nrow(preictal.files), n.train.preictal)
-train.preictal.files <- preictal.files[train.preictal.indices,]
-train.preictal.files <- train.preictal.files$filename # Training file names
-
-test.preictal.files <- preictal.files[-train.preictal.indices,]
-test.preictal.files <- test.preictal.files$filename # Testing file names
-
-# Set random seed for reproducability
-set.seed(313)
-# Create random data split for interictal
-train.interictal.indices <- sample(nrow(interictal.files), n.train.interictal)
-train.interictal.files <- interictal.files[train.interictal.indices,]
-train.interictal.files <- train.interictal.files$filename # Training file names
-
-test.interictal.files <- interictal.files[-train.interictal.indices,]
-test.interictal.files <- test.interictal.files$filename # Testing file names
-
-# List of training files
-training.files <- c(train.preictal.files, train.interictal.files)
-# List of testing files
-testing.files <- c(test.preictal.files, test.interictal.files)
-
-# Training data
-train.partition <-c()
-i <- 1
-
-for (files in training.files){
-  cat(files," ", i , "\n")
-  matchstring <- paste0("^",files,"_" )
-  train.partition <- rbind(train.partition, combined.feature[grep(matchstring, combined.feature$ID),])
-  i = i + 1
-}
-
-# Testing data
-test.partition <-c()
-i <- 1
-
-for (files in testing.files){
-  cat(files," ", i , "\n")
-  matchstring <- paste0("^",files,"_" )
-  test.partition <- rbind(test.partition, combined.feature[grep(matchstring, combined.feature$ID),])
-  i = i + 1  
-}
+#Check distribution
+table(train.partition$CLASS)
 
 # Set up labels for files
 trainsize <- split*100
 testsize <- (1-split)*100
-file.label <- paste(trainsize, "_", testsize, sep = "")
-labtr <- "Reduced_Train_Partition_"
-labte <- "Reduced_Test_Partition_"
+labsp <- paste(trainsize, "_", testsize, sep = "")
+labfe <- "Stat_plus_FFT_"
+labtr <- "Boosted_Minority_Train_Partition_"
+labte <- "Boosted_Minority_Test_Partition_"
 
 # Save to file
-setwd(partition.folder)
-save(train.partition, file = paste0(labtr, file.label, ".rda"))
-save(test.partition, file = paste0(labte, file.label, ".rda"))
+setwd(paste0(portable, "Partitions"))
+save(train.partition, file = paste0(labfe, labtr, labsp, ".rda"))
+save(test.partition, file = paste0(labfe, labte, labsp, ".rda"))
 
 ######################################################################################
 

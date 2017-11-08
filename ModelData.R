@@ -24,26 +24,32 @@
 ################################## LOAD PARTITION ####################################
 
 setwd(partition.folder)
-train.filename <- "FFT_Normal_Train_Partition_70_30.rda"
-test.filename <- "FFT_Normal_Test_Partition_70_30.rda"
+train.filename <- "FFT_Boosted_Minority_Train_Partition_70_30.rda"     
+test.filename <- "FFT_Boosted_Minority_Test_Partition_70_30.rda" 
 load(train.filename)  # Load training data
 load(test.filename) # Load test data
 
 # Labels for saving results
-label <- "Stat_Normal_70_30.rda"
+label <- "FFT_Boosted_Minority_70_30.rda"
 
-#[1] "FFT_Downsample_Majority_Test_Partition_70_30.rda"           
-#[2] "FFT_Downsample_Majority_Train_Partition_70_30.rda"          
-#[3] "FFT_Normal_Test_Partition_70_30.rda"                        
-#[4] "FFT_Normal_Train_Partition_70_30.rda"                       
-#[5] "Stat_Downsample_Majority_Test_Partition_70_30.rda"          
-#[6] "Stat_Downsample_Majority_Train_Partition_70_30.rda"         
-#[7] "Stat_Normal_Test_Partition_70_30.rda"                       
-#[8] "Stat_Normal_Train_Partition_70_30.rda"                      
-#[9] "Stat_plus_FFT_Downsample_Majority_Test_Partition_70_30.rda" 
-#[10] "Stat_plus_FFT_Downsample_Majority_Train_Partition_70_30.rda"
-#[11] "Stat_plus_FFT_Normal_Test_Partition_70_30.rda"              
-#[12] "Stat_plus_FFT_Normal_Train_Partition_70_30.rda" 
+# [1] "FFT_Boosted_Minority_Test_Partition_70_30.rda"              
+# [2] "FFT_Boosted_Minority_Train_Partition_70_30.rda"             
+# [3] "FFT_Downsample_Majority_Test_Partition_70_30.rda"           
+# [4] "FFT_Downsample_Majority_Train_Partition_70_30.rda"          
+# [5] "FFT_Normal_Test_Partition_70_30.rda"                        
+# [6] "FFT_Normal_Train_Partition_70_30.rda"                       
+# [7] "Stat_Boosted_Minority_Test_Partition_70_30.rda"             
+# [8] "Stat_Boosted_Minority_Train_Partition_70_30.rda"            
+# [9] "Stat_Downsample_Majority_Test_Partition_70_30.rda"          
+# [10] "Stat_Downsample_Majority_Train_Partition_70_30.rda"         
+# [11] "Stat_Normal_Test_Partition_70_30.rda"                       
+# [12] "Stat_Normal_Train_Partition_70_30.rda"                      
+# [13] "Stat_plus_FFT_Boosted_Minority_Test_Partition_70_30.rda"    
+# [14] "Stat_plus_FFT_Boosted_Minority_Train_Partition_70_30.rda"   
+# [15] "Stat_plus_FFT_Downsample_Majority_Test_Partition_70_30.rda" 
+# [16] "Stat_plus_FFT_Downsample_Majority_Train_Partition_70_30.rda"
+# [17] "Stat_plus_FFT_Normal_Test_Partition_70_30.rda"              
+# [18] "Stat_plus_FFT_Normal_Train_Partition_70_30.rda"   
 
 ##################################### SVM MODELING ###################################
 
@@ -52,13 +58,11 @@ N <- ncol(train.partition)
 
 # SVM modelling
 # Training with e1071 package
-cat(sys.Time())
 system.time(svmModel <- svm(train.partition[,c(3:N)],  # Choose columns for features
                 train.partition$CLASS,  # Class labels
                 probability = TRUE))  # Calculate probabilities
 
 # Predicting
-cat(sys.Time())
 system.time(svmPredict <- predict(svmModel,  # Trained model
                       test.partition[,c(3:N)],  # Choose columns for features
                       probability = TRUE))  # Calculate probabilities                                                                                                                     ui95
@@ -67,6 +71,69 @@ system.time(svmPredict <- predict(svmModel,  # Trained model
 setwd(results.folder)
 save(svmModel, file = paste0("SVM_model_", label))
 save(svmPredict, file = paste0("SVM_predict_", label))
+
+################################### NEURAL MODELING ###################################
+
+load("FFT_Normal_Train_Partition_70_30.rda")
+
+df <- sample(nrow(train.partition), 10000)
+dat <- train.partition[df,]
+
+
+
+table(dat$CLASS)
+
+train.partition$ID <- NULL
+dat$ID <- NULL
+
+outdata <- nnet(CLASS ~ ., data = dat, size = 3, rang = 0.5,
+               decay = 0.01, maxit = 3000)
+
+outdata <- nnet(CLASS ~ ., data = train.partition, size = 3, rang = 0.5,
+                decay = 0.01, maxit = 3000)
+
+
+#install.packages("devtools")
+#library(devtools)
+#source_url('https://gist.githubusercontent.com/fawda123/7471137/raw/466c1474d0a505ff044412703516c34f1a4684a5/nnet_plot_update.r')
+
+#plot each model
+plot.nnet(outdata)
+
+summary(outdata)
+
+
+# Number columns
+N <- ncol(train.partition)
+
+# Neural Network modelling
+# Training with nnet package
+system.time(neuralModel <- nnet(train.partition[,c(3:N)],  # Choose columns for features
+                            train.partition$CLASS,  # Class labels
+                            probability = TRUE))  # Calculate probabilities
+
+# Predicting
+system.time(neuralPredict <- predict(svmModel,  # Trained model
+                                  test.partition[,c(3:N)],  # Choose columns for features
+                                  probability = TRUE))  # Calculate probabilities                                                                                                                     ui95
+
+# Save model and prediction results
+setwd(results.folder)
+save(svmModel, file = paste0("SVM_model_", label))
+save(svmPredict, file = paste0("SVM_predict_", label))
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #################################### GET RESULTS ####################################
 
