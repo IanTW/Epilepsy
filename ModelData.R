@@ -24,13 +24,13 @@
 ################################## LOAD PARTITION ####################################
 
 setwd(partition.folder)
-train.filename <- "FFT_Boosted_Minority_Train_Partition_70_30.rda"     
-test.filename <- "FFT_Boosted_Minority_Test_Partition_70_30.rda" 
+train.filename <- "Stat_plus_FFT_Normal_Train_Partition_70_30.rda"     
+test.filename <- "Stat_plus_FFT_Normal_Test_Partition_70_30.rda" 
 load(train.filename)  # Load training data
 load(test.filename) # Load test data
 
 # Labels for saving results
-label <- "FFT_Boosted_Minority_70_30.rda"
+label <- "Stat_plus_FFT_Normal_70_30.rda"
 
 # [1] "FFT_Boosted_Minority_Test_Partition_70_30.rda"              
 # [2] "FFT_Boosted_Minority_Train_Partition_70_30.rda"             
@@ -71,69 +71,6 @@ system.time(svmPredict <- predict(svmModel,  # Trained model
 setwd(results.folder)
 save(svmModel, file = paste0("SVM_model_", label))
 save(svmPredict, file = paste0("SVM_predict_", label))
-
-################################### NEURAL MODELING ###################################
-
-load("FFT_Normal_Train_Partition_70_30.rda")
-
-df <- sample(nrow(train.partition), 10000)
-dat <- train.partition[df,]
-
-
-
-table(dat$CLASS)
-
-train.partition$ID <- NULL
-dat$ID <- NULL
-
-outdata <- nnet(CLASS ~ ., data = dat, size = 3, rang = 0.5,
-               decay = 0.01, maxit = 3000)
-
-outdata <- nnet(CLASS ~ ., data = train.partition, size = 3, rang = 0.5,
-                decay = 0.01, maxit = 3000)
-
-
-#install.packages("devtools")
-#library(devtools)
-#source_url('https://gist.githubusercontent.com/fawda123/7471137/raw/466c1474d0a505ff044412703516c34f1a4684a5/nnet_plot_update.r')
-
-#plot each model
-plot.nnet(outdata)
-
-summary(outdata)
-
-
-# Number columns
-N <- ncol(train.partition)
-
-# Neural Network modelling
-# Training with nnet package
-system.time(neuralModel <- nnet(train.partition[,c(3:N)],  # Choose columns for features
-                            train.partition$CLASS,  # Class labels
-                            probability = TRUE))  # Calculate probabilities
-
-# Predicting
-system.time(neuralPredict <- predict(svmModel,  # Trained model
-                                  test.partition[,c(3:N)],  # Choose columns for features
-                                  probability = TRUE))  # Calculate probabilities                                                                                                                     ui95
-
-# Save model and prediction results
-setwd(results.folder)
-save(svmModel, file = paste0("SVM_model_", label))
-save(svmPredict, file = paste0("SVM_predict_", label))
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 #################################### GET RESULTS ####################################
 
@@ -177,6 +114,9 @@ results$Truth <- factor(ifelse(grepl("inter", results$ID), "Interictal", "Preict
 # Get confusion matrix
 confusion <- table(results$Prediction, results$Truth)
 
+# Show result
+confusion
+
 # Uses ROCR package
 # Initialise object
 auc <- c()
@@ -191,3 +131,123 @@ perf <- performance(pred,"tpr","fpr")
 # Plot measures
 #plot(perf)
 
+################################### NEURAL MODELING ###################################
+
+# Visualisation
+# install.packages("devtools")
+# library(devtools)
+# source_url('https://gist.githubusercontent.com/fawda123/7471137/raw/466c1474d0a505ff044412703516c34f1a4684a5/nnet_plot_update.r')
+# plot.nnet(outdata)
+
+# Drop ID
+# Not in fft boosted minority - is this the case for all????
+train.partition$ID <- NULL
+
+N <- ncol(train.partition)
+
+# Neural Network modelling
+# Training with nnet package
+system.time(neuralModel <- nnet(CLASS ~ .,
+                                data = train.partition,
+                                size = 10,
+                                rang = 0.5,
+                                decay = 0.01,
+                                maxit = 3000,
+                                MaxNWts = 10000))
+
+# Training with caret and nnet
+# Set grid for tuning parameters
+nnetGrid <- expand.grid(.size=c(1,2),.decay=c(0,0.1))
+
+# Maximum number of neurons
+maxSize <- max(nnetGrid$.size)
+
+# Number of weights - WRONG I THINK
+numWts <- 1*(maxSize * (N-1) + 1)
+
+# Training
+system.time(neuralModel <- train(train.partition[,c(2:N)],
+                                 train.partition$CLASS,
+                                 method = "nnet",
+                                 tuneGrid = nnetGrid,
+                                 maxit = 1000,
+                                 MaxNWts = numWts))
+
+# summary(neuralModel)
+
+# Number columns
+N <- ncol(test.partition)
+
+# Predicting
+#system.time(neuralPredict <- predict(neuralModel,  # Trained model
+#                                      test.partition[,c(3:N)],  # Choose columns for features
+#                                      type = "class"))  # Calculate probabilities    
+#
+# or
+
+system.time(neuralPredict <- predict(neuralModel,  # Trained model
+                                      test.partition[,c(3:N)],  # Choose columns for features
+                                      type = "raw"))  # Calculate probabilities        
+
+# Save model and prediction results
+setwd(results.folder)
+save(neuralModel, file = paste0("Neural_model_", label))
+save(neuralPredict, file = paste0("Neural_predict_", label))
+
+#################################### GET RESULTS ####################################
+
+# Load training data
+setwd(partition.folder)
+load("Normal_Train_Partition_70_30.rda")
+# Load test data
+load("Normal_Test_Partition_70_30.rda")
+
+# Load models
+setwd(results.folder)
+load("SVM_model_normal_70_30_fft.rda")
+load("SVM_predict_normal_70_30_stat_plus_fft.rda")
+
+# Get probabilities from prediction
+probs <- as.data.frame(neuralPredict)
+# Bind with test data to get original file identities
+test.partition.prob <- cbind(probs, test.partition)
+
+# Remove slice number from ID
+test.partition.prob$ID <- paste0(read.table(text = test.partition.prob$ID,
+                                            sep = ".",
+                                            as.is = TRUE)$V1,
+                                 ".mat")
+
+# Convert to data.table
+test.partition.prob <- as.data.table(test.partition.prob)
+
+# Summarise to get total probability across all slices for each data file
+results <- test.partition.prob[,.(PreictalProb = sum(V1/slice.num)),
+                               by =.(ID)]
+
+# Create predicted label based on highest probability
+results$Prediction <- factor(ifelse(results$PreictalProb > 0.5,
+                                    "Preictal", "Interictal"))
+
+# Create truth label based on the filename
+results$Truth <- factor(ifelse(grepl("inter", results$ID), "Interictal", "Preictal"))
+
+# Get confusion matrix
+confusion <- table(results$Prediction, results$Truth)
+
+# Show result
+confusion
+
+# Uses ROCR package
+# Initialise object
+auc <- c()
+# Get probabilities
+auc$predictions <- results$PreictalProb
+# Get labels
+auc$label <- ifelse(results$Truth == "Preictal", 1, 0)
+# Create prediction object
+pred <- prediction(auc$predictions, auc$label)
+# Get performance measure TPR and FPR 
+perf <- performance(pred,"tpr","fpr")
+# Plot measures
+#plot(perf)

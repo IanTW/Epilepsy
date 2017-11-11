@@ -208,6 +208,9 @@ for (files in testing.files){
   i = i + 1  
 }
 
+# Drop ID
+train.partition$ID <- NULL
+
 # Set up labels for files
 trainsize <- split*100
 testsize <- (1-split)*100
@@ -303,6 +306,9 @@ for (files in testing.files){
   test.partition <- rbind(test.partition, combined.feature[grep(matchstring, combined.feature$ID),])
   i = i + 1  
 }
+
+# Drop ID
+train.partition$ID <- NULL
 
 # Set up labels for files
 trainsize <- split*100
