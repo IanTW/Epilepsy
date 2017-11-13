@@ -24,13 +24,13 @@
 ################################## LOAD PARTITION ####################################
 
 setwd(partition.folder)
-train.filename <- "Stat_plus_FFT_Normal_Train_Partition_70_30.rda"     
-test.filename <- "Stat_plus_FFT_Normal_Test_Partition_70_30.rda" 
+train.filename <- "Stat_plus_FFT_Boosted_Minority_Train_Partition_70_30.rda" 
+test.filename <- "Stat_plus_FFT_Boosted_Minority_Test_Partition_70_30.rda"
 load(train.filename)  # Load training data
 load(test.filename) # Load test data
 
 # Labels for saving results
-label <- "Stat_plus_FFT_Normal_70_30.rda"
+label <- "Stat_plus_FFT_Boosted_Minority_70_30.rda"
 
 # [1] "FFT_Boosted_Minority_Test_Partition_70_30.rda"              
 # [2] "FFT_Boosted_Minority_Train_Partition_70_30.rda"             
@@ -58,14 +58,17 @@ N <- ncol(train.partition)
 
 # SVM modelling
 # Training with e1071 package
-system.time(svmModel <- svm(train.partition[,c(3:N)],  # Choose columns for features
+system.time(svmModel <- svm(train.partition[,c(2:N)],  # Choose columns for features
                 train.partition$CLASS,  # Class labels
                 probability = TRUE))  # Calculate probabilities
+
+# Number columns
+N <- ncol(test.partition)
 
 # Predicting
 system.time(svmPredict <- predict(svmModel,  # Trained model
                       test.partition[,c(3:N)],  # Choose columns for features
-                      probability = TRUE))  # Calculate probabilities                                                                                                                     ui95
+                      probability = TRUE))  # Calculate probabilities
 
 # Save model and prediction results
 setwd(results.folder)
@@ -132,12 +135,6 @@ perf <- performance(pred,"tpr","fpr")
 #plot(perf)
 
 ################################### NEURAL MODELING ###################################
-
-# Visualisation
-# install.packages("devtools")
-# library(devtools)
-# source_url('https://gist.githubusercontent.com/fawda123/7471137/raw/466c1474d0a505ff044412703516c34f1a4684a5/nnet_plot_update.r')
-# plot.nnet(outdata)
 
 # Drop ID
 # Not in fft boosted minority - is this the case for all????
