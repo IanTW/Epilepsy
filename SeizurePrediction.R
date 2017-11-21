@@ -54,16 +54,16 @@ read.EEG.file <- function (filename) {
   # 
   # Returns:
   #   EEG.file - a list of lists, with five elements. Element 1 is the electrode 
-  #   data and the others contain metadata (length; sample rate; electrode labels
-  #   and sample sequence)
-  
+  #   data and the others contain metadata (length; sample rate; 
+  #   number of channels; electrode labels
+
   # Initiliase list for EEG data structure
   EEG.file <- list()
   # Read in the .mat file
   a <- readMat(filename)
   # Data matrix - element 1 
-  # 16 rows by ~24,000 columns = 16 by (200 x 600) or
-  # 16 electrode by (sample rate X length seconds) 
+  # E.g. 16 rows by ~24,000 columns = 16 by (200 x 600) or
+  # 16 electrodes by (sample rate in Hz X length in seconds) 
   EEG.file[["mat"]] <- a[[1]][[1]]
   # EEG length - element 2
   EEG.file[["seconds"]] <- as.numeric(a[[1]][[2]])
@@ -71,7 +71,7 @@ read.EEG.file <- function (filename) {
   EEG.file[["frequency"]] <- as.numeric(a[[1]][[3]])
   # Number of EEG channels
   EEG.file[["channel"]] <- as.numeric(nrow(a[[1]][[1]]))
-  # EEG electrode labels 
+  # EEG electrode labels - element 4
   EEG.file[["labels"]] <- unlist(a[[1]][[4]])
   # Remove object
   rm(a)
@@ -85,48 +85,39 @@ read.EEG.file <- function (filename) {
 
 # Folder structures with patient EEG data files
 folder.list = c('Dog_1', 'Dog_2', 'Dog_3', 'Dog_4', 'Dog_5', 'Patient_1', 'Patient_2')
-# Endode data file categories into a numerical annotation
-patient.num <- c('Dog_1' = 1, 'Dog_2' = 2, 'Dog_3' = 3,
-                 'Dog_4' = 4, 'Dog_5' = 5, 'Patient_1' = 6,
-                 'Patient_2' = 7)
+# Encode data file categories into a numerical annotation
+#patient.num <- c('Dog_1' = 1, 'Dog_2' = 2, 'Dog_3' = 3,
+#                 'Dog_4' = 4, 'Dog_5' = 5, 'Patient_1' = 6,
+#                 'Patient_2' = 7)
 
 # Code is developed on several machines and location of data files may vary
 # Get working directory for code and data samples
 parent.dir <- getwd()
 
 # Set drive letter for portable data store
-portable <- "E:/"
+portable <- "D:/"
 
 # Location for feature vectors if generating features
 # ARE YOU OVERWRITING ANY EXISTING FEATURES?
-feature.folder <- "Set_X"
+feature.folder <- "Set_2"
 
 # Location for test results
 # ARE YOU OVERWRITING ANY EXISTING RESULTS?
-results.folder <- paste0(portable, 'Results')
+#results.folder <- paste0(portable, 'Results/Normal')
+#or
+results.folder <- paste0(portable, 'Results/Correlation')
 
 # Set directories for the data for modelling
-partition.folder <- paste0(portable, 'Partitions')  # Change drive letter as needed
+#partition.folder <- paste0(portable, 'Partitions/Normal')
+#or
+partition.folder <- paste0(portable, 'Partitions/Correlation')
 
-# Set this to choose which set of data to work on
-# Sample data, set = 1; full data, set = 0
-sample.data <- 0
-
-if (sample.data == 1){
-  # Set subdirectory for feature vector results
-  features.dir <- paste0(parent.dir, '/Features/', feature.folder)
-  # Create folder
-  dir.create(path = features.dir, showWarnings = TRUE)
-  # Set working directory for sample dataset
-  data.dir <- paste0(parent.dir, '/Sample Data/')
-} else  { 
-  # Set subdirectory for feature vector results
-  features.dir <- paste0(portable, 'Features/',feature.folder)  # Change drive letter as needed
-  # Create folder
-  dir.create(path = features.dir, showWarnings = TRUE)
-  # Set working directory for full dataset (Drive letter may vary across machines)
-  data.dir <- paste0(portable, 'Data/')  # Change drive letter as needed
-}
+# Set subdirectory for feature vector results
+features.dir <- paste0(portable, 'Features/',feature.folder)  # Change drive letter as needed
+# Create folder
+#dir.create(path = features.dir, showWarnings = TRUE)
+# Set working directory for full dataset (Drive letter may vary across machines)
+data.dir <- paste0(portable, 'Data/')  # Change drive letter as needed
 
 # Set this to choose overlapping or non-overlapping windows
 # Hard coded to 50% overlap between windows
@@ -141,11 +132,12 @@ slice.num <- (600/60)*2-1
 # Set window size for file segmentation (seconds), preferably factor of 600.
 windowsize <- 60
 
-# Set training split
+# Set training/testing split
 split <- 0.70
 
 # Skip files that do not have exactly 16 channels
 # Skip, set = 1; do not skip, set = 0
+# Warning!! There are many files that will be removed if skip=1
 skip.files <- 0
 
 # Make statistical features
@@ -173,7 +165,6 @@ make.fft <- 0
 ############################ PREPROCESSING - GET METADATA ############################
 
 # Read in the data files and create a summary table of metadata
-# Required initially and when rebuilding the dataset
 
 #source ("GetMetadata.R")
 
@@ -182,7 +173,6 @@ make.fft <- 0
 ################################ FEATURE ENGINEERING #################################
 
 # Construct EEG features and output a feature vector for the classifiers
-# Will be run each time features are generated or optimised
 
 #source ("MakeFeature.R")
 
@@ -192,7 +182,6 @@ make.fft <- 0
 
 # Merge feature vectors for patients and feature types
 # Create test/train partitions for modelling
-# Will be run at least once each time features are generated or optimised
 
 #source ("PartitionData.R")
 
@@ -200,10 +189,28 @@ make.fft <- 0
 
 ################################## DATA MODELING #####################################
 
-# Create test/train partitions for the feature vectors
-# Will be run at least once each time features are generated or optimised
+# Create models with training data and run predictions on test data
 
 #source ("ModelData.R")
+
+# Models and predictions are saved to 'Results' folder
+# There are subfolders for 'Model' and 'Predict'
+
+################################## SUMMARISE RESULTS #################################
+
+# Evaluate results (AUC, specificity...) and summarise
+
+#source ("EvaluateResults.R")
+
+# Summary table is saved to the 'Results' folder
+
+################################## FEATURE REDUCTION #################################
+
+# Examine features for feature selection/reduction
+
+#source ("SelectFeature.R")
+
+# The results are saved to the 'Results' folder
 
 #################################### END CODE ########################################
 

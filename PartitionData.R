@@ -141,10 +141,10 @@ n_interictal <- nrow(combined.feature[combined.feature$CLASS == "Interictal",])
 # Load combined feature vector
 #setwd(paste0(portable,"/Features/Set_1"))
 #load("Combined_stat_features.rda")
-setwd(paste0(portable,"/Features/Set_2"))
-load("Combined_FFT_features.rda")
-#setwd(paste0(portable,"/Features/Set_3"))
-#load("Combined_stat_plus_FFT_features.rda")
+#setwd(paste0(portable,"/Features/Set_2"))
+#load("Combined_FFT_features.rda")
+setwd(paste0(portable,"/Features/Set_3"))
+load("Combined_stat_plus_FFT_features.rda")
 
 # Load metadata file
 setwd(data.dir)
@@ -365,29 +365,123 @@ save(test.partition, file = paste0(labfe, labte, labsp, ".rda"))
 
 ######################################################################################
 
+# Create partitions using reduced features
 
-# Check correct numbers of records
+# Portable
+portable <- "D:/"
 
-setwd(paste0(portable,"/Features/Set_3"))
-load("Combined_stat_plus_FFT_features.rda")
-nrow(combined.feature[combined.feature$CLASS == 'Preictal',])
-nrow(combined.feature[combined.feature$CLASS == 'Interictal',])
+# Stat features
+feature.folder <- "Set_1"
+features.dir <- paste0(portable, 'Features/',feature.folder)
+setwd(features.dir)
+load("Corr_reduced_stat_index.rda")
 
-setwd(partition.folder)
-load("Reduced_Test_Partition_70_30.rda")
-load("Reduced_Train_Partition_70_30.rda")
+# Adjust indices for number of columns in original data frame
+# E.g. index 12 in the test data is index 14 in the original
+test.index <- highlyCorrelated + 2
+# E.g. index 13 in the train data is index 14 in the original
+train.index <- highlyCorrelated + 1
 
-nrow(test.partition[test.partition$CLASS == 'Preictal',])
-nrow(train.partition[train.partition$CLASS == 'Preictal',])
-nrow(test.partition[test.partition$CLASS == 'Interictal',])
-nrow(train.partition[train.partition$CLASS == 'Interictal',])
+# Test/Stat
+a <- "1_Stat_Normal_Test_Partition_70_30.rda"
+b <- "2_Stat_Downsample_Majority_Test_Partition_70_30.rda"
+c <- "3_Stat_Boosted_Minority_Test_Partition_70_30.rda"
+# Load data, filter and save
+setwd(paste0(portable,'Partitions/Normal/Test'))
+filename <- c
+load(filename)
+test.partition <- test.partition[,-test.index]
+setwd(paste0(portable, "Partitions/Correlation/Test"))
+save(test.partition, file = filename)
 
-load("Simple_Test_Partition_70_30.rda")
-load("Simple_Train_Partition_70_30.rda")
+# Train/Stat
+a <- "1_Stat_Normal_Train_Partition_70_30.rda"
+b <- "2_Stat_Downsample_Majority_Train_Partition_70_30.rda"
+c <- "3_Stat_Boosted_Minority_Train_Partition_70_30.rda"
+# Load data, filter and save
+setwd(paste0(portable,'Partitions/Normal/Train'))
+filename <- a
+load(filename)
+train.partition <- train.partition[,-train.index]
+setwd(paste0(portable, "Partitions/Correlation/Train"))
+save(train.partition, file = filename)
 
-nrow(test.partition[test.partition$CLASS == 'Interictal',])
-nrow(train.partition[train.partition$CLASS == 'Interictal',])
-nrow(test.partition[test.partition$CLASS == 'Preictal',])
-nrow(train.partition[train.partition$CLASS == 'Preictal',])
+################################
 
-######################################################################################
+# FFT features
+feature.folder <- "Set_2"
+features.dir <- paste0(portable, 'Features/',feature.folder)
+setwd(features.dir)
+load("Corr_reduced_fft_index.rda")
+
+# Adjust indices for number of columns in original data frame
+# E.g. index 12 in the test data is index 14 in the original
+test.index <- highlyCorrelated + 2
+# E.g. index 13 in the train data is index 14 in the original
+train.index <- highlyCorrelated + 1
+
+# Test/Stat
+a <- "4_FFT_Normal_Test_Partition_70_30.rda"
+b <- "5_FFT_Downsample_Majority_Test_Partition_70_30.rda"
+c <- "6_FFT_Boosted_Minority_Test_Partition_70_30.rda"
+
+# Load data, filter and save
+setwd(paste0(portable,'Partitions/Normal/Test'))
+filename <- a
+load(filename)
+test.partition <- test.partition[,-test.index]
+setwd(paste0(portable, "Partitions/Correlation/Test"))
+save(test.partition, file = filename)
+
+# Train/Stat
+a <- "4_FFT_Normal_Train_Partition_70_30.rda"
+b <- "5_FFT_Downsample_Majority_Train_Partition_70_30.rda"
+c <- "6_FFT_Boosted_Minority_Train_Partition_70_30.rda"
+
+# Load data, filter and save
+setwd(paste0(portable,'Partitions/Normal/Train'))
+filename <- a
+load(filename)
+train.partition <- train.partition[,-train.index]
+setwd(paste0(portable, "Partitions/Correlation/Train"))
+save(train.partition, file = filename)
+
+################################
+
+# Stat Plus FFT features
+feature.folder <- "Set_3"
+features.dir <- paste0(portable, 'Features/',feature.folder)
+setwd(features.dir)
+load("Corr_reduced_stat_plus_fft_index.rda")
+
+# Adjust indices for number of columns in original data frame
+# E.g. index 12 in the test data is index 14 in the original
+test.index <- highlyCorrelated + 2
+# E.g. index 13 in the train data is index 14 in the original
+train.index <- highlyCorrelated + 1
+
+# Test/Stat
+a <- "7_Stat_plus_FFT_Normal_Test_Partition_70_30.rda"
+b <- "8_Stat_plus_FFT_Downsample_Majority_Test_Partition_70_30.rda"
+c <- "9_Stat_plus_FFT_Boosted_Minority_Test_Partition_70_30.rda"
+
+# Load data, filter and save
+setwd(paste0(portable,'Partitions/Normal/Test'))
+filename <- a
+load(filename)
+test.partition <- test.partition[,-test.index]
+setwd(paste0(portable, "Partitions/Correlation/Test"))
+save(test.partition, file = filename)
+
+# Train/Stat
+a <- "7_Stat_plus_FFT_Normal_Train_Partition_70_30.rda"
+b <- "8_Stat_plus_FFT_Downsample_Majority_Train_Partition_70_30.rda"
+c <- "9_Stat_plus_FFT_Boosted_Minority_Train_Partition_70_30.rda"
+
+# Load data, filter and save
+setwd(paste0(portable,'Partitions/Normal/Train'))
+filename <- a
+load(filename)
+train.partition <- train.partition[,-train.index]
+setwd(paste0(portable, "Partitions/Correlation/Train"))
+save(train.partition, file = filename)
