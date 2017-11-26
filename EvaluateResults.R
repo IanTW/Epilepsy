@@ -27,7 +27,7 @@ list.of.files <- dir(predict.folder)
 setwd(predict.folder)
 
 # Make results object
-summary.results <- data.frame(matrix(ncol = 6, nrow = 0))
+summary.results <- data.frame(matrix(ncol = 8, nrow = 0))
 
 for (filename in list.of.files){
   
@@ -126,9 +126,21 @@ for (filename in list.of.files){
   # AUC
   perf <- performance(pred,"auc")
   auc.score <- round(unlist(attr(perf, "y.values")),2)
+  # Specificity
+  spec.score <- round(confusion[1]/(confusion[1]+confusion[2]),2)
+  # Sensitivity
+  sens.score <- round(confusion[4]/(confusion[3]+confusion[4]),2)
+  
   
   # Compile results
-  results.list <- c(filename, confusion[1], confusion[2], confusion[3], confusion[4], auc.score)
+  results.list <- c(filename,
+                    confusion[1],
+                    confusion[2],
+                    confusion[3],
+                    confusion[4],
+                    spec.score,
+                    sens.score,
+                    auc.score)
   
   # Bind to output 
   summary.results <- rbind(summary.results, results.list, stringsAsFactors = FALSE)
@@ -137,9 +149,11 @@ for (filename in list.of.files){
 }
 
 # Create column names
-x <- c("Filename", "TNR", "FPR", "FNR", "TPR", "AUC")
+x <- c("Filename", "TN", "FP", "FN", "TP", "Specificity", "Sensitivity", "AUC")
 colnames(summary.results) <- x
 # Set directory for output
 setwd(results.folder)
 save(summary.results, file = "Summary_Results.rda")
+write.csv(summary.results, "Summary_Results.csv", row.names = FALSE)
+
 summary.results
