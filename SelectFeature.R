@@ -27,6 +27,8 @@ setwd(features.dir)
 #load("Combined_FFT_features.rda")
 #load("Combined_stat_plus_FFT_features.rda")
 
+###########################
+
 # Calculate correlation matrix
 # Ignore first two columns containing filename and class labels
 correlationMatrix <- cor(combined.feature[,3:ncol(combined.feature)])
@@ -34,7 +36,32 @@ correlationMatrix <- cor(combined.feature[,3:ncol(combined.feature)])
 highlyCorrelated <- findCorrelation(correlationMatrix, cutoff = 0.75)
 
 # Save reduced feature set indexes
-#save(highlyCorrelated, file = "Corr_reduced_stat_index.rda")
-#save(highlyCorrelated, file = "Corr_reduced_FFT_index.rda")
-#save(highlyCorrelated, file = "Corr_reduced_stat_plus_FFT_index.rda")
+#save(highlyCorrelated, file = "Corr_stat.rda")
+#save(highlyCorrelated, file = "Corr_FFT.rda")
+#save(highlyCorrelated, file = "Corr_stat_plus_FFT.rda")
+
+###########################
+
+# Calculate Recursive Feature Elimenation (RFE)
+# Number of columns in feature vector
+control <- rfeControl(functions = rfFuncs, method = "cv", number = 5)
+
+results <- rfe(combined.feature[,3:ncol(combined.feature)], # Features
+               combined.feature[,2], # Class labels
+               sizes=c(1:224), # Set to required number of features
+               rfeControl=control)
+
+# Save RFE results
+#save(results, file = "RFE_stat.rda")
+#save(results, file = "RFE_FFT.rda")
+#save(results, file = "RFE_stat_plus_FFT.rda")
+
+# Plot results
+#print(results)
+#print(results$optVariables)
+#plot(results, type=c("g", "o"))
+
+# Filter
+combined.feature <- combined.feature[,results$optVariables]
+
 
