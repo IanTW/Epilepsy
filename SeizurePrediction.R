@@ -95,11 +95,11 @@ folder.list = c('Dog_1', 'Dog_2', 'Dog_3', 'Dog_4', 'Dog_5', 'Patient_1', 'Patie
 parent.dir <- getwd()
 
 # Set drive letter for portable data store
-portable <- "D:/"
+portable <- "I:/"
 
 # Location for feature vectors if generating features
 # ARE YOU OVERWRITING ANY EXISTING FEATURES?
-feature.folder <- "Set_2"
+feature.folder <- "Set_4"
 
 # Location for test results
 # ARE YOU OVERWRITING ANY EXISTING RESULTS?
@@ -116,8 +116,8 @@ partition.folder <- paste0(portable, 'Partitions/Correlation')
 features.dir <- paste0(portable, 'Features/',feature.folder)  # Change drive letter as needed
 # Create folder
 #dir.create(path = features.dir, showWarnings = TRUE)
-# Set working directory for full dataset (Drive letter may vary across machines)
-data.dir <- paste0(portable, 'Data/')  # Change drive letter as needed
+# Set working directory for full dataset
+data.dir <- paste0(portable, 'Data/')  
 
 # Set this to choose overlapping or non-overlapping windows
 # Hard coded to 50% overlap between windows
@@ -125,12 +125,12 @@ data.dir <- paste0(portable, 'Data/')  # Change drive letter as needed
 # Overlapping window, set = 1; non-overlapping, set = 0
 overlap <- 1
 
+# Set window size for file segmentation (seconds), preferably factor of 600.
+windowsize <- 30
+
 # For 50% overlapping windows
 # Number of slices = ((time/windowsize) * 2) - 1
-slice.num <- (600/60)*2-1
-
-# Set window size for file segmentation (seconds), preferably factor of 600.
-windowsize <- 60
+slice.num <- (600/windowsize)*2-1
 
 # Set training/testing split
 split <- 0.70
@@ -142,7 +142,7 @@ skip.files <- 0
 
 # Make statistical features
 # Make, set = 1; do not make, set = 0
-make.stat <- 0
+make.stat <- 1
 
 # Make spectral density features
 # Make, set = 1; do not make, set = 0
