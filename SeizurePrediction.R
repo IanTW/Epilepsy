@@ -99,7 +99,7 @@ portable <- "D:/"
 
 # Location for feature vectors if generating features
 # ARE YOU OVERWRITING ANY EXISTING FEATURES?
-feature.folder <- "Set_2"
+feature.folder <- "Set_4"
 
 # Location for test results
 # ARE YOU OVERWRITING ANY EXISTING RESULTS?
@@ -113,7 +113,7 @@ results.folder <- paste0(portable, 'Results/Correlation')
 partition.folder <- paste0(portable, 'Partitions/Correlation')
 
 # Set subdirectory for feature vector results
-features.dir <- paste0(portable, 'Features/',feature.folder)  # Change drive letter as needed
+features.dir <- paste0(parent.dir, 'Features/',feature.folder)  # Change drive letter as needed
 # Create folder
 #dir.create(path = features.dir, showWarnings = TRUE)
 # Set working directory for full dataset (Drive letter may vary across machines)
@@ -123,14 +123,14 @@ data.dir <- paste0(portable, 'Data/')  # Change drive letter as needed
 # Hard coded to 50% overlap between windows
 # Warning!! For n windows almost doubles processing time: time*(2n-1)
 # Overlapping window, set = 1; non-overlapping, set = 0
-overlap <- 1
+overlap <- 0
+
+# Set window size for file segmentation (seconds), preferably factor of 600.
+windowsize <- 60
 
 # For 50% overlapping windows
 # Number of slices = ((time/windowsize) * 2) - 1
 slice.num <- (600/60)*2-1
-
-# Set window size for file segmentation (seconds), preferably factor of 600.
-windowsize <- 60
 
 # Set training/testing split
 split <- 0.70
