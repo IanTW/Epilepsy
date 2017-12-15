@@ -41,14 +41,15 @@ highlyCorrelated <- findCorrelation(correlationMatrix, cutoff = 0.75)
 #save(highlyCorrelated, file = "Corr_stat_plus_FFT.rda")
 
 ###########################
+# RFE Method
 
 # Calculate Recursive Feature Elimenation (RFE)
 # Number of columns in feature vector
-control <- rfeControl(functions = rfFuncs, method = "cv", number = 5)
+control <- rfeControl(functions = rfFuncs, method = "cv", number = 2, verbose = TRUE)
 
 results <- rfe(combined.feature[,3:ncol(combined.feature)], # Features
                combined.feature[,2], # Class labels
-               sizes=c(1:224), # Set to required number of features
+               sizes=c(1:224), # Set to required number of features - 224
                rfeControl=control)
 
 # Save RFE results
@@ -65,3 +66,37 @@ results <- rfe(combined.feature[,3:ncol(combined.feature)], # Features
 combined.feature <- combined.feature[,results$optVariables]
 
 
+###########################
+#LVQ method
+library(caret)
+
+#Subset for testing
+#combined.feature <- combined.feature[sample(nrow(combined.feature),100000),]
+
+control <- trainControl(method="cv", number = 2, verboseIter = TRUE)
+
+grid <- expand.grid(size=c(33,66), k=c(67,99, 121))
+
+# Train the model
+model <- train(combined.feature[,3:ncol(combined.feature)], # Features
+               combined.feature[,2], # Class labels
+               method = "lvq", 
+               trControl=control)
+
+# Train the model with grid tune
+model <- train(combined.feature[,3:ncol(combined.feature)], # Features
+               combined.feature[,2], # Class labels
+               method = "lvq", 
+               trControl=control,
+               tuneGrid = grid)
+
+# estimate variable importance
+importance <- varImp(model, scale=FALSE)
+# summarize importance
+print(importance)
+# plot importance
+
+# Save LVQ results
+save(importance, file = "LVQ_stat.rda")
+#save(importance, file = "LVQ_FFT.rda")
+#save(importance, file = "LVQ_stat_plus_FFT.rda")
