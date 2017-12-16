@@ -22,15 +22,13 @@
 # This file should be called from the main code file SeizurePrediction.R
 
 ######################################################################################
-# SET 1
-
-# Combine Statistics features per patient into a single object
+# For stat and FFT features
 # This code is specfic for the folders and number of features
 # It cannot be run generically
 
 # Make sure there is no existing copy already !!!
 # Combine all feature vectors into one dataframe
-setwd(paste0(portable, "Features/Set_1"))
+setwd(paste0(portable, "Features/60s-50p/Stat"))
 # Get list of feature files
 listoffiles <- list.files()
 # Initialise object
@@ -45,45 +43,16 @@ for (filename in listoffiles){
 }
 
 combined.feature$CLASS <- as.factor(combined.feature$CLASS)
-save(combined.feature, file = "Combined_stat_features.rda")
+save(combined.feature, file = "Combined_features.rda")
 
+# Check
 # Number of preictal rows
 n_preictal <- nrow(combined.feature[combined.feature$CLASS == "Preictal",])
 # Number of interictal rows
 n_interictal <- nrow(combined.feature[combined.feature$CLASS == "Interictal",])
 
 #######################################################################################
-# SET 2
-# Combine FFT features per patient into a single object
-# This code is specfic for the folders and number of features
-# It cannot be run generically
-
-# Make sure there is no existing copy already !!!
-# Combine all feature vectors into one dataframe
-setwd(paste0(portable, "Features/Set_2"))
-# Get list of feature files
-listoffiles <- list.files()
-# Initialise object
-combined.feature <- c()
-
-# Loop for all feature files
-for (filename in listoffiles){
-  # Load file
-  load(filename)
-  # Row bind
-  combined.feature <- rbind(combined.feature, feature.vector.matrix)
-}
-
-combined.feature$CLASS <- as.factor(combined.feature$CLASS)
-save(combined.feature, file = "Combined_FFT_features.rda")
-
-# Number of preictal rows
-n_preictal <- nrow(combined.feature[combined.feature$CLASS == "Preictal",])
-# Number of interictal rows
-n_interictal <- nrow(combined.feature[combined.feature$CLASS == "Interictal",])
-
-#######################################################################################
-# Set 3
+# For merge of stat and FFT
 # Combine Statistics and FFT features per patient into a single object
 # This code is specfic for the folders and number of features
 # It cannot be run generically
@@ -91,11 +60,11 @@ n_interictal <- nrow(combined.feature[combined.feature$CLASS == "Interictal",])
 for (folder in folder.list){
   
   # Get Statistics features
-  setwd(paste0(portable, "Features/Set_1"))
+  setwd(paste0(portable, "Features/60s-50p/Stat"))
   load (paste0(folder,"_features.rda"))
   df1 <- feature.vector.matrix
   # Get FFT features
-  setwd(paste0(portable, "Features/Set_2"))
+  setwd(paste0(portable, "Features/60s-50p/FFT"))
   load (paste0(folder,"_features.rda"))
   df2 <- feature.vector.matrix
   
@@ -105,7 +74,7 @@ for (folder in folder.list){
   df <- df3[, c(1:84,89:312)]
   
   #Set output directory - does the directory exist?
-  setwd(paste0(portable, "Features/Set_3"))
+  setwd(paste0(portable, "Features/60s-50p/Both"))
   # Save to file
   save(df, file = paste0(folder,"_stat_plus_FFT_features.rda"))
 }

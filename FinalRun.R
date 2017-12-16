@@ -1,29 +1,31 @@
-features.dir <- paste0(parent.dir, '/Features')
-feature.win <- c("/60-50", "/30-50")
-feature.type <- c("/Stat", "/FFT", "/Stat_plus_FFT")
+features.dir <- paste0(portable, '/Features')
+feature.type <- c("/60s-50p") #, "/30s-50p")
+feature.folder <- c("/Stat", "/FFT", "/Both")
 feature.selection <- c("LVQ.rda", "RFE.rda")
 
-for (folder in feature.win){
-  for (subfolder in feature.type){ 
-    setwd(paste0(features.dir,folder,subfolder))
+for (feats in feature.type){
+  for (folder in feature.folder){ 
+    setwd(paste0(features.dir,feats,folder))
       for (select.method in feature.selection){
-        open file
-        subset combined.feature
+        load("Combined_features.rda")
+        cat("Loaded features\n")
+        load(select.method)
+        cat("Loaded",select.method,"\n")
         
-        for (sample.method in sampling) {
+        #subset combined.feature
+        
+        #for (sample.method in sampling) {
           
           
-        }
+        
         
         
       }
     
-    open feature selection LVQ
+   # open feature selection LVQ
       
-      
+  }
       
     }  
   
-  
-  }
-}
+

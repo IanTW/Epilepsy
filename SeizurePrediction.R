@@ -92,14 +92,10 @@ folder.list = c('Dog_1', 'Dog_2', 'Dog_3', 'Dog_4', 'Dog_5', 'Patient_1', 'Patie
 
 # Code is developed on several machines and location of data files may vary
 # Get working directory for code and data samples
-parent.dir <- getwd()
+parent.dir <- getwd() 
 
 # Set drive letter for portable data store
 portable <- "I:/"
-
-# Location for feature vectors if generating features
-# ARE YOU OVERWRITING ANY EXISTING FEATURES?
-feature.folder <- "Set_4"
 
 # Location for test results
 # ARE YOU OVERWRITING ANY EXISTING RESULTS?
@@ -112,10 +108,6 @@ results.folder <- paste0(portable, 'Results/Correlation')
 #or
 partition.folder <- paste0(portable, 'Partitions/Correlation')
 
-# Set subdirectory for feature vector results
-features.dir <- paste0(parent.dir, 'Features/',feature.folder)  # Change drive letter as needed
-# Create folder
-#dir.create(path = features.dir, showWarnings = TRUE)
 # Set working directory for full dataset
 data.dir <- paste0(portable, 'Data/')  
 
@@ -123,10 +115,7 @@ data.dir <- paste0(portable, 'Data/')
 # Hard coded to 50% overlap between windows
 # Warning!! For n windows almost doubles processing time: time*(2n-1)
 # Overlapping window, set = 1; non-overlapping, set = 0
-overlap <- 0
-
-# Set window size for file segmentation (seconds), preferably factor of 600.
-windowsize <- 60
+overlap <- 1
 
 # Set window size for file segmentation (seconds), preferably factor of 600.
 windowsize <- 30
@@ -151,6 +140,17 @@ make.stat <- 1
 # Make spectral density features
 # Make, set = 1; do not make, set = 0
 make.fft <- 0
+
+# Location for feature vectors if generating features
+# ARE YOU OVERWRITING ANY EXISTING FEATURES?
+feature.folder <- "Stat"
+feature.type <- paste0(windowsize,"s-",ifelse(overlap==1,"50p","0p"),"/")
+
+# Set subdirectory for feature vector results
+features.dir <- paste0(portable, 
+                       'Features/',
+                       feature.type,
+                       feature.folder)
 
 ########################### PREPROCESSING - LABELLING FILES ##########################
 
