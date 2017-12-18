@@ -27,9 +27,10 @@ list.of.packages <- c("R.matlab",    # Handling *.mat files
                       "eegkit",      # Visualising EEG
                       "TSA",         # Time series tools
                       "moments",     # Statistical moments
-                      "caret",       # Data partitioning
+                      "caret",       # Modelling
                       "e1071",       # SVM modeling
                       "data.table",  # Summarise data
+                      "signal",      # Downsampling EEG  
                       "ROCR",        # Performance evaluation
                       "DMwR",        # SMOTE
                       "nnet")        # Neural network modeling
@@ -115,10 +116,10 @@ data.dir <- paste0(portable, 'Data/')
 # Hard coded to 50% overlap between windows
 # Warning!! For n windows almost doubles processing time: time*(2n-1)
 # Overlapping window, set = 1; non-overlapping, set = 0
-overlap <- 1
+overlap <- 0
 
 # Set window size for file segmentation (seconds), preferably factor of 600.
-windowsize <- 30
+windowsize <- 60
 
 # For 50% overlapping windows
 # Number of slices = ((time/windowsize) * 2) - 1
@@ -135,16 +136,16 @@ skip.files <- 0
 
 # Make statistical features
 # Make, set = 1; do not make, set = 0
-make.stat <- 1
+make.stat <- 0
 
 # Make spectral density features
 # Make, set = 1; do not make, set = 0
-make.fft <- 0
+make.fft <- 1
 
 # Location for feature vectors if generating features
 # ARE YOU OVERWRITING ANY EXISTING FEATURES?
-feature.folder <- "Stat"
-feature.type <- paste0(windowsize,"s-",ifelse(overlap==1,"50p","0p"),"/")
+feature.folder <- "FFT"
+feature.type <- paste0(windowsize,"s-",ifelse(overlap==1,"50p","00p"),"/")
 
 # Set subdirectory for feature vector results
 features.dir <- paste0(portable, 

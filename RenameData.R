@@ -1,6 +1,6 @@
 ######################################################################################
-# File Name: RenameData.R                                                        #
-# Purpose: Relabel 'test' data files                                                  #
+# File Name: RenameData.R                                                            #
+# Purpose: Relabel 'test' data files                                                 #
 #                                                                                    #
 # Author: Ian Watson                                                                 #
 # Email1: d13128934@mydit.ie                                                         #
@@ -16,9 +16,6 @@
 # R code for implementing a machine learning classification experiment to compare    #
 # the performance of SVM and neural network classifiers used for epileptic seizure   #
 # prediction                                                                         #
-#                                                                                    #
-# Parts of code adapted from Wei Wu & ESAI, Universidad CEU Cardenal Herrera,        #
-# (F. Zamora-Martínez,    #F. Muñoz-Malmaraz, P. Botella-Rocamora, J. Pardo).        # 
 #                                                                                    #
 ######################################################################################
 # Data is from the Kaggle Epileptic Seizure Prediction Competion 2014. A large number#

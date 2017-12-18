@@ -17,9 +17,6 @@
 # the performance of SVM and neural network classifiers used for epileptic seizure   #
 # prediction                                                                         #
 #                                                                                    #
-# Parts of code adapted from Wei Wu & ESAI, Universidad CEU Cardenal Herrera,        #
-# (F. Zamora-Martínez,    #F. Muñoz-Malmaraz, P. Botella-Rocamora, J. Pardo).        # 
-#                                                                                    #
 ######################################################################################
 
 # This file should be called from the main code file SeizurePrediction.R
@@ -36,7 +33,7 @@
 
 ######################################################################################
 
-# Function to calculate basis statistics
+# Function to calculate statistical features
 feature.statistic <- function (EEG.channel, prefix){
   # Calculates summary statistics for a single windowed EEG channel
   #
@@ -63,7 +60,7 @@ feature.statistic <- function (EEG.channel, prefix){
 
 ######################################################################################
 
-# Function to window a multichannel EEG time series (non-overlapping)
+# Function to window an EEG time series (non-overlapping)
 window.matrix <- function (EEG.data, num.split){
   # Windows a single EEG time series matrix into a list of windowed matrices.
   # The windows are non-overlapping.
@@ -95,7 +92,7 @@ window.matrix <- function (EEG.data, num.split){
 
 ######################################################################################
 
-# Function to window a multichannel EEG time series (overlapping)
+# Function to window an EEG time series (overlapping)
 overlap.window.matrix <- function (EEG.data, num.split){
   # Windows a single EEG time series matrix into a list of windowed matrices.
   # The windows are overlapping by 50%
@@ -108,7 +105,7 @@ overlap.window.matrix <- function (EEG.data, num.split){
   #   EEG.window: List of EEG matrices.
   #   The no. of elements in the list equals (num.split * 2) - 1
   #   The first element contains data from 0 to windowsize (seconds). The second
-  #   element contains data from windowsize to 2*windowsize (and so on). 
+  #   element contains data from windowsize/2 to 3*windowsize/2 (and so on). 
   
   # Initialise a list
   EEG.window <- list()
@@ -205,7 +202,7 @@ feature.FFT <- function (EEG.channel, prefix, frequency){
   band.gammahigh.power <- round(sum(X.k[X.k$Freq >= 70 & X.k$Freq <= 180,]),0)
   band.total.power <- round(sum(X.k[X.k$Freq <= 200,]),0)
 
-  # Relative power per band
+  # Normalised power per band
   rel.band.delta.power <- band.delta.power/band.total.power*100
   rel.band.theta.power <- band.theta.power/band.total.power*100
   rel.band.alpha.power <- band.alpha.power/band.total.power*100
