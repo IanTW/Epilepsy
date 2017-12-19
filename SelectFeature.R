@@ -28,8 +28,8 @@ setwd(features.dir)
 #load("Combined_stat_plus_FFT_features.rda")
 
 ###########################
-
 # Calculate correlation matrix
+
 # Ignore first two columns containing filename and class labels
 correlationMatrix <- cor(combined.feature[,3:ncol(combined.feature)])
 # Indices of features that are highly corrected
@@ -41,7 +41,16 @@ highlyCorrelated <- findCorrelation(correlationMatrix, cutoff = 0.75)
 #save(highlyCorrelated, file = "Corr_stat_plus_FFT.rda")
 
 ###########################
+# Subset
+temp <- combined.feature[combined.feature$CLASS == "Preictal",]
+temp1 <- combined.feature[combined.feature$CLASS == "Interictal",]
+temp1 <- temp1[sample(nrow(temp1),30000),]
+combined.feature <-rbind(temp, temp1)
+table(combined.feature$CLASS)
+
+###########################
 # RFE Method
+library(caret)
 
 # Calculate Recursive Feature Elimenation (RFE)
 # Number of columns in feature vector
@@ -49,33 +58,21 @@ control <- rfeControl(functions = rfFuncs, method = "cv", number = 2, verbose = 
 
 results <- rfe(combined.feature[,3:ncol(combined.feature)], # Features
                combined.feature[,2], # Class labels
-               sizes=c(1:224), # Set to required number of features - 224
+               sizes=c(1:80), # Set to required number of features - /80/224/304
                rfeControl=control)
 
 # Save RFE results
-#save(results, file = "RFE_stat.rda")
+save(results, file = "RFE_stat_40k.rda")
 #save(results, file = "RFE_FFT.rda")
-#save(results, file = "RFE_stat_plus_FFT.rda")
-
-# Plot results
-#print(results)
-#print(results$optVariables)
-#plot(results, type=c("g", "o"))
-
-# Filter
-combined.feature <- combined.feature[,results$optVariables]
-
+#save(results, file = "RFE_Both_40k.rda")
 
 ###########################
 #LVQ method
 library(caret)
 
-#Subset for testing
-#combined.feature <- combined.feature[sample(nrow(combined.feature),100000),]
-
 control <- trainControl(method="cv", number = 2, verboseIter = TRUE)
 
-grid <- expand.grid(size=c(33,66), k=c(67,99, 121))
+#grid <- expand.grid(size=c(33,66), k=c(67,99, 121))
 
 # Train the model
 model <- train(combined.feature[,3:ncol(combined.feature)], # Features
@@ -84,19 +81,44 @@ model <- train(combined.feature[,3:ncol(combined.feature)], # Features
                trControl=control)
 
 # Train the model with grid tune
-model <- train(combined.feature[,3:ncol(combined.feature)], # Features
-               combined.feature[,2], # Class labels
-               method = "lvq", 
-               trControl=control,
-               tuneGrid = grid)
+#model <- train(combined.feature[,3:ncol(combined.feature)], # Features
+#               combined.feature[,2], # Class labels
+#               method = "lvq", 
+#               trControl=control,
+#               tuneGrid = grid)
+
+
+# Save LVQ results
+save(model, file = "LVQ_stat_40k.rda")
+#save(importance, file = "LVQ_FFT.rda")
+#save(importance, file = "LVQ_stat_plus_FFT.rda")
+
+#################################################################
+# Graphics/Options for RFE
+
+# Plot results
+print(results)
+print(results$optVariables)
+plot(results, main = "Title Here",type=c("g", "o"))
+
+# Filter 
+combined.feature <- combined.feature[,results$optVariables]
+
+#################################################################
+# Graphics/Options for LVQ
 
 # estimate variable importance
 importance <- varImp(model, scale=FALSE)
+plot(varImp(model, scale = FALSE), top = 40)
 # summarize importance
 print(importance)
-# plot importance
+# plot model (show k size and codebook size)
+plot(model)
 
-# Save LVQ results
-save(importance, file = "LVQ_stat.rda")
-#save(importance, file = "LVQ_FFT.rda")
-#save(importance, file = "LVQ_stat_plus_FFT.rda")
+# Top variables
+LVQ <- data.frame(varImp(model)[1])
+LVQ <- LVQ[order(-LVQ$importance.Interictal),]
+LVQ <- LVQ[c(1:20),] # Top 20
+# Get var names
+LVQ <- rownames(LVQ)
+#################################################################
