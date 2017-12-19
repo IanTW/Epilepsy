@@ -23,16 +23,6 @@
 
 ######################################################################################
 
-# Variables for development to be deleted
-
-#folder <- "Dog_1"
-#filename <- "Dog_1_interictal_segment_0476.mat"
-#slices <- 1
-#channels <- 1
-#prefix <- "Chan_1"
-
-######################################################################################
-
 # Function to calculate statistical features
 feature.statistic <- function (EEG.channel, prefix){
   # Calculates summary statistics for a single windowed EEG channel

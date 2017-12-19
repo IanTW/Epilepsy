@@ -116,10 +116,10 @@ data.dir <- paste0(portable, 'Data/')
 # Hard coded to 50% overlap between windows
 # Warning!! For n windows almost doubles processing time: time*(2n-1)
 # Overlapping window, set = 1; non-overlapping, set = 0
-overlap <- 0
+overlap <- 1
 
 # Set window size for file segmentation (seconds), preferably factor of 600.
-windowsize <- 60
+windowsize <- 30
 
 # For 50% overlapping windows
 # Number of slices = ((time/windowsize) * 2) - 1
@@ -136,15 +136,15 @@ skip.files <- 0
 
 # Make statistical features
 # Make, set = 1; do not make, set = 0
-make.stat <- 0
+make.stat <- 1
 
 # Make spectral density features
 # Make, set = 1; do not make, set = 0
-make.fft <- 1
+make.fft <- 0
 
 # Location for feature vectors if generating features
 # ARE YOU OVERWRITING ANY EXISTING FEATURES?
-feature.folder <- "FFT"
+feature.folder <- "Stat"
 feature.type <- paste0(windowsize,"s-",ifelse(overlap==1,"50p","00p"),"/")
 
 # Set subdirectory for feature vector results
