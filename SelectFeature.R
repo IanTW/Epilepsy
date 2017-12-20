@@ -58,12 +58,12 @@ control <- rfeControl(functions = rfFuncs, method = "cv", number = 2, verbose = 
 
 results <- rfe(combined.feature[,3:ncol(combined.feature)], # Features
                combined.feature[,2], # Class labels
-               sizes=c(1:80), # Set to required number of features - /80/224/304
+               sizes=c(1:224), # Set to required number of features - /80/224/304
                rfeControl=control)
 
 # Save RFE results
-save(results, file = "RFE_stat_40k.rda")
-#save(results, file = "RFE_FFT.rda")
+#save(results, file = "RFE_Stat_40k.rda")
+save(results, file = "RFE_FFT_40k.rda")
 #save(results, file = "RFE_Both_40k.rda")
 
 ###########################
@@ -89,9 +89,9 @@ model <- train(combined.feature[,3:ncol(combined.feature)], # Features
 
 
 # Save LVQ results
-save(model, file = "LVQ_stat_40k.rda")
-#save(importance, file = "LVQ_FFT.rda")
-#save(importance, file = "LVQ_stat_plus_FFT.rda")
+#save(model, file = "LVQ_Stat_40k.rda")
+save(importance, file = "LVQ_FFT_40k.rda")
+#save(importance, file = "LVQ_Both.rda")
 
 #################################################################
 # Graphics/Options for RFE
