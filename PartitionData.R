@@ -113,24 +113,6 @@ cols <- ncol(combined.feature)
 
 # Load combined feature vector
 #setwd(paste0(portable,"/Features/Set_1"))
-#load("Combined_stat_features.rda")
-#setwd(paste0(portable,"/Features/Set_2"))
-#load("Combined_FFT_features.rda")
-#setwd(paste0(portable,"/Features/Set_3"))
-#load("Combined_stat_plus_FFT_features.rda")
-
-# Function to create normal data partition
-normal.partition <- function (filename,type,feat,featsel) {
-  # Reads in a feature vector file 
-  #
-  # Args:
-  #   filename: The name of the input feature vector
-  #   type: The type of feature (window and overlap size)
-  #   feat: The type of feature (Stat, FFT, or both)
-  #   featsel: The type of feature selection method (LVQ, RFE)
-  # 
-  # Returns:
-  #   Saves a test and training partition
 
   # Load metadata file
   setwd(data.dir)
@@ -200,27 +182,20 @@ normal.partition <- function (filename,type,feat,featsel) {
   train.partition$ID <- NULL
   
   # Set up labels for files
-  labty <- type  # Type
-  labfe <- feat  # Feature
-  labse <- featsel  # Selection method
+  labfe <- "FFT"  # Feature
   labtr <- "Normal_Train"
   labte <- "Normal_Test"
   
   # Save to file
   setwd(paste0(portable, "Partitions"))
-  save(train.partition, file = paste0(labty,
-                                      labfe,
-                                      labse,
+  save(train.partition, file = paste0(labfe,
                                       labtr,
                                       ".rda",
                                       sep = "_"))
-  save(test.partition, file = paste0(labty,
-                                     labfe,
-                                     labse,
+  save(test.partition, file = paste0(labfe,
                                      labte,
                                      ".rda",
                                      sep = "_"))
-  }
 
 ######################################################################################
 
