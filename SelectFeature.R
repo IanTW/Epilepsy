@@ -58,12 +58,12 @@ control <- rfeControl(functions = rfFuncs, method = "cv", number = 2, verbose = 
 
 results <- rfe(combined.feature[,3:ncol(combined.feature)], # Features
                combined.feature[,2], # Class labels
-               sizes=c(1:224), # Set to required number of features - /80/224/304
+               sizes=c(1:80), # Set to required number of features - /80/224/304
                rfeControl=control)
 
 # Save RFE results
-#save(results, file = "RFE_Stat_40k.rda")
-save(results, file = "RFE_FFT_40k.rda")
+save(results, file = "RFE_Stat_50k.rda")
+#save(results, file = "RFE_FFT_40k.rda")
 #save(results, file = "RFE_Both_40k.rda")
 
 ###########################
@@ -89,27 +89,16 @@ model <- train(combined.feature[,3:ncol(combined.feature)], # Features
 
 
 # Save LVQ results
-#save(model, file = "LVQ_Stat_40k.rda")
-save(importance, file = "LVQ_FFT_40k.rda")
-#save(importance, file = "LVQ_Both.rda")
-
-#################################################################
-# Graphics/Options for RFE
-
-# Plot results
-print(results)
-print(results$optVariables)
-plot(results, main = "Title Here",type=c("g", "o"))
-
-# Filter 
-combined.feature <- combined.feature[,results$optVariables]
+save(model, file = "LVQ_Stat_50k.rda")
+#save(model, file = "LVQ_FFT_40k.rda")
+#save(model, file = "LVQ_Both_40k.rda")
 
 #################################################################
 # Graphics/Options for LVQ
 
 # estimate variable importance
 importance <- varImp(model, scale=FALSE)
-plot(varImp(model, scale = FALSE), top = 40)
+plot(varImp(model, scale = FALSE), top = 20)
 # summarize importance
 print(importance)
 # plot model (show k size and codebook size)
@@ -118,7 +107,59 @@ plot(model)
 # Top variables
 LVQ <- data.frame(varImp(model)[1])
 LVQ <- LVQ[order(-LVQ$importance.Interictal),]
-LVQ <- LVQ[c(1:20),] # Top 20
+LVQ <- LVQ[c(1:50),] # Top 20 etc
 # Get var names
 LVQ <- rownames(LVQ)
+cols <- c("ID", "CLASS", LVQ)
+save(cols, file = "LVQ.rda")
+
 #################################################################
+# Graphics/Options for RFE
+# Plot results
+print(results)
+print(results$optVariables)
+plot(results, main = "Title Here",type=c("g", "o"))
+
+library(data.table)
+# Get list of optimal features 
+RFE <- results$optVariables[1:50] # Set according to number of features 20/50 etc
+cols <- c("ID", "CLASS", RFE)
+save(cols, file = "RFE.rda")
+
+# Plot RFE
+library(plotly)
+df <- results$results
+
+m <- df[which.max(df$Accuracy), ]
+
+a <- list(
+  x = m$Variables,
+  y = m$Accuracy,
+  text = paste0("Optimal Features = ", rownames(m)),
+  xref = "x",
+  yref = "y",
+  showarrow = TRUE,
+  arrowhead = 7,
+  ax = -120,
+  ay = 130
+)
+
+ax <- list(
+  zeroline = TRUE,
+  showline = TRUE,
+  zerolinecolor = toRGB("black"),
+  zerolinewidth = 1,
+  linecolor = toRGB("black"),
+  linewidth = 1
+)
+
+plot_ly(df, x = ~Variables, y = ~Accuracy, type = 'scatter', mode = 'lines+markers') %>%
+add_trace(df, 
+          x = m$Variables, y=c(0.55,0.92),
+          hoverinfo = "text",
+          mode = "lines",
+          type = "scatter") %>%
+layout(annotations = a, showlegend=FALSE, xaxis = ax) %>%
+config(displayModeBar = F)
+  
+

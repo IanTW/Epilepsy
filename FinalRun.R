@@ -1,55 +1,13 @@
-partition.folder = paste0("c:/users/ian/desktop", '/Partitions') # Dev only
-features.dir <- paste0("c:/users/ian/desktop", '/Features/') # Dev only
-features.dir <- paste0(portable, '/Features')
-win.type <- c("60s-50p", "60s-00p", "30s-50p", "30s-00p")
+partition.folder = paste0("c:/users/ian_wa/desktop", '/Partitions') # Dev only
+features.dir <- paste0("c:/users/ian_wa/dropbox", '/Features') # Dev only
+data.dir <- "c:/users/ian_wa/dropbox"
+#features.dir <- paste0(portable, '/Features')
+win.type <- c("60-50")       #   , "60-00", "30-50", "30-00")
 feature.folder <- c("Stat", "FFT", "Both")
-feature.selection <- c("LVQ.rda", "RFE.rda")
+feature.selection <- c("Non", "Rfe.rda", "Lvq.rda")
 prefix = 0
+split = 0.7
 
-#Dev only
-win = win.type[1]
-feature = feature.folder[1]
-sel = feature.selection[1]
-
-for (win in win.type){
-  for (feature in feature.folder){ 
-    for (sel in feature.selection){
-      # Set directory to location for feature vector
-      setwd(paste0(features.dir, "/", win,"/", feature))
-      cat("Working on ", win," ",feature," ",sel,"\n")
-      # Open feature vector
-      load("Combined_features.rda")
-      # Open selection method
-      load(sel)
-      cat("Subsetting with",sel,"\n")
-      
-      # Feature selection - NEEDS WORK
-      cols <- c(1,2,feature.select)
-      combined.feature <- combined.feature[,cols]
-      
-      # Make double digit prefix
-      if (prefix <= 9){
-        prefix = paste(0, prefix, sep="")
-      }
-      
-      # Set directory for partitions
-      setwd(partition.folder)
-      # Make normal partition
-      normal.partition(combined.feature, prefix, win, feature, sel)
-      prefix <- prefix + 1
-      
-      # Make increased minority class
-      increase.partition(train.partition, test.partition,
-                         prefix, win, feature, sel)
-      prefix <- prefix + 1
-      
-      # Make reduced majority class
-      reduce.partition(combined.feature, prefix, win, feature, sel)
-      prefix <- prefix + 1
-    }
-  }
-}  
-  
 # Function to create normal data partition
 normal.partition <- function (filename, prefix, win, feature, sel) {
   # Reads in a feature vector file 
@@ -64,9 +22,10 @@ normal.partition <- function (filename, prefix, win, feature, sel) {
   # Returns:
   #   Saves a test and training partition
   
+  cat("Starting Normal Partition\n")
+  
   # Load metadata file
-  #setwd(data.dir)
-  setwd("c:/users/ian/desktop") # dev only
+  setwd(data.dir)
   
   load("metadata.rda")
   
@@ -133,6 +92,11 @@ normal.partition <- function (filename, prefix, win, feature, sel) {
   # Drop ID
   train.partition$ID <- NULL
   
+  # Make double digit prefix
+  if (prefix <= 9){
+    prefix = paste(0, prefix, sep="")
+  }
+  
   # Set up labels for files
   labpre <- prefix
   labty <- win  # Type of window
@@ -142,15 +106,16 @@ normal.partition <- function (filename, prefix, win, feature, sel) {
   labte <- "Normal_Test"
   
   # Save to file
-  setwd("c:/users/ian/Desktop/partitions") # dev only
- # setwd(paste0(portable, "Partitions"))
-  save(train.partition, file = paste0(prefix,
+  setwd("c:/users/ian_wa/Desktop/partitions/train") # dev only
+  # setwd(paste0(portable, "Partitions"))
+  save(train.partition, file = paste(prefix,
                                       labty,
                                       labfe,
                                       labse,
                                       labtr,
                                       ".rda",
                                       sep = "_"))
+  setwd("c:/users/ian_wa/Desktop/partitions/test") # dev only
   save(test.partition, file = paste(prefix,
                                     labty,
                                     labfe,
@@ -158,13 +123,11 @@ normal.partition <- function (filename, prefix, win, feature, sel) {
                                     labte,
                                     ".rda",
                                     sep = "_"))
-  
-  result <- c(test.partition, train.partition)
-  
-  return(result) 
+
 }
 
-increase.partition <- function (train, test, prefix, win, feature, sel) {
+# Function to create increased minority data partition
+increase.partition <- function (filename, prefix, win, feature, sel) {
   # Reads in a feature vector file 
   #
   # Args:
@@ -176,9 +139,77 @@ increase.partition <- function (train, test, prefix, win, feature, sel) {
   # 
   # Returns:
   #   Saves and returns a test and training partition
+
+  cat("Starting Increased Partition\n")
   
-  train.partition <- train
-  test.partition <- test
+  # Load metadata file
+  setwd(data.dir)
+  
+  load("metadata.rda")
+  cat("Loaded metadata\n")
+  
+  # List of files
+  preictal.files <- meta.data.results[grep("preictal", meta.data.results$filename),]
+  interictal.files <- meta.data.results[grep("interictal", meta.data.results$filename),]
+  
+  # Calculate number of preictal files in each partition
+  n.train.preictal <- round(nrow(preictal.files)*split,0)  # Total files * split
+  n.test.preictal <- nrow(preictal.files) - n.train.preictal # The remaining files
+  # Calculate number of interictal files in each partition
+  n.train.interictal <- round(nrow(interictal.files)*split,0)  # Total files * split
+  n.test.interictal <- nrow(interictal.files) - n.train.interictal # The remaining files
+  
+  # Set random seed for reproducability
+  set.seed(893)
+  # Create random indices for preictal
+  train.preictal.indices <- sample(nrow(preictal.files), n.train.preictal)
+  # Get preictal training files
+  train.preictal.files <- preictal.files[train.preictal.indices,]
+  train.preictal.files <- train.preictal.files$filename # Training file names
+  # Get preictal testing files
+  test.preictal.files <- preictal.files[-train.preictal.indices,]
+  test.preictal.files <- test.preictal.files$filename # Testing file names
+  
+  # Set random seed for reproducability
+  set.seed(313)
+  # Create random indices for interictal
+  train.interictal.indices <- sample(nrow(interictal.files), n.train.interictal)
+  # Get interictal training files
+  train.interictal.files <- interictal.files[train.interictal.indices,]
+  train.interictal.files <- train.interictal.files$filename # Training file names
+  # Get interictal testing files
+  test.interictal.files <- interictal.files[-train.interictal.indices,]
+  test.interictal.files <- test.interictal.files$filename # Testing file names
+  
+  # Combined list of training files
+  training.files <- c(train.preictal.files, train.interictal.files)
+  # Combined list of testing files
+  testing.files <- c(test.preictal.files, test.interictal.files)
+  
+  # Make training data
+  train.partition <-c()
+  i <- 1  # For console output
+  
+  for (files in training.files){
+    #cat(files," ", i , "\n")
+    matchstring <- paste0("^",files,"_" )
+    train.partition <- rbind(train.partition, combined.feature[grep(matchstring, combined.feature$ID),])
+    i = i + 1
+  }
+  
+  # Make testing data
+  test.partition <-c()
+  i <- 1  # For console output
+  
+  for (files in testing.files){
+    #cat(files," ", i , "\n")
+    matchstring <- paste0("^",files,"_" )
+    test.partition <- rbind(test.partition, combined.feature[grep(matchstring, combined.feature$ID),])
+    i = i + 1  
+  }
+  
+  # Drop ID
+  train.partition$ID <- NULL
   
   # SMOTE
   train.partition$CLASS <- as.factor(train.partition$CLASS)
@@ -186,6 +217,11 @@ increase.partition <- function (train, test, prefix, win, feature, sel) {
   
   #Check distribution
   #table(train.partition$CLASS)
+  
+  # Make double digit prefix
+  if (prefix <= 9){
+    prefix = paste(0, prefix, sep="")
+  }
   
   # Set up labels for files
   labpre <- prefix
@@ -196,16 +232,16 @@ increase.partition <- function (train, test, prefix, win, feature, sel) {
   labte <- "Increased_Test"
   
   # Save to file
-  setwd("c:/users/ian/Desktop/partitions") # dev only
+  setwd("c:/users/ian_wa/Desktop/partitions/train") # dev only
   # setwd(paste0(portable, "Partitions"))
-  save(train.partition, file = paste0(prefix,
+  save(train.partition, file = paste(prefix,
                                       labty,
                                       labfe,
                                       labse,
                                       labtr,
                                       ".rda",
                                       sep = "_"))
-  
+  setwd("c:/users/ian_wa/Desktop/partitions/test") # dev only
   save(test.partition, file = paste(prefix,
                                     labty,
                                     labfe,
@@ -213,12 +249,9 @@ increase.partition <- function (train, test, prefix, win, feature, sel) {
                                     labte,
                                     ".rda",
                                     sep = "_"))
-  
-  result <- c(test.partition, train.partition)
-  
-  return(result)
 }
 
+# Function to create reduced majority data partition
 reduce.partition <- function (filename, prefix, win, feature, sel) {
   # Reads in a feature vector file 
   #
@@ -232,64 +265,65 @@ reduce.partition <- function (filename, prefix, win, feature, sel) {
   # Returns:
   #   Saves and returns a test and training partition
   
+  cat("Starting Reduced Partition\n")
   
   # Load metadata file
-  #setwd(data.dir)
-  setwd("c:/users/ian/desktop") # dev only
+  setwd(data.dir)
   
   load("metadata.rda")
   
-  # List of preictal and interictal files
+  # List of files
   preictal.files <- meta.data.results[grep("preictal", meta.data.results$filename),]
   interictal.files <- meta.data.results[grep("interictal", meta.data.results$filename),]
   
-  # Number of preictal files
-  n_preictal <- nrow(preictal.files)
-  
-  # Set random seed for reproducability
-  set.seed(379)
-  
-  # Reduce number of interictal files to match preictal
-  interictal.files <- interictal.files[sample(nrow(interictal.files), n_preictal),]
-  
-  # Split files according to desired ratio
+  # Calculate number of preictal files in each partition
   n.train.preictal <- round(nrow(preictal.files)*split,0)  # Total files * split
   n.test.preictal <- nrow(preictal.files) - n.train.preictal # The remaining files
-  
+  # Calculate number of interictal files in each partition
   n.train.interictal <- round(nrow(interictal.files)*split,0)  # Total files * split
   n.test.interictal <- nrow(interictal.files) - n.train.interictal # The remaining files
   
   # Set random seed for reproducability
   set.seed(893)
-  # Create random data split for preictal
+  # Create random indices for preictal
   train.preictal.indices <- sample(nrow(preictal.files), n.train.preictal)
+  # Get preictal training files
   train.preictal.files <- preictal.files[train.preictal.indices,]
   train.preictal.files <- train.preictal.files$filename # Training file names
-  
+  # Get preictal testing files
   test.preictal.files <- preictal.files[-train.preictal.indices,]
   test.preictal.files <- test.preictal.files$filename # Testing file names
   
   # Set random seed for reproducability
   set.seed(313)
-  # Create random data split for interictal
+  # Create random indices for interictal
   train.interictal.indices <- sample(nrow(interictal.files), n.train.interictal)
+  # Get interictal training files
   train.interictal.files <- interictal.files[train.interictal.indices,]
   train.interictal.files <- train.interictal.files$filename # Training file names
-  
+  # Get interictal testing files
   test.interictal.files <- interictal.files[-train.interictal.indices,]
   test.interictal.files <- test.interictal.files$filename # Testing file names
   
-  # List of training files
-  training.files <- c(train.preictal.files, train.interictal.files)
-  # List of testing files
-  testing.files <- c(test.preictal.files, test.interictal.files)
+  # Set random seed for reproducability
+  set.seed(379)
   
+  # Reduce number of training interictal files to match training preictal files
+  train.interictal.indices <- sample(train.interictal.indices,n.train.preictal)
+  train.interictal.files <- interictal.files[train.interictal.indices,]
+  train.interictal.files <- train.interictal.files$filename # Training file names
+
+  # Combined list of training files
+  training.files <- c(train.preictal.files, train.interictal.files)
+  # Combined list of testing files
+  testing.files <- c(test.preictal.files, test.interictal.files)
+
   # Training data
   train.partition <-c()
   i <- 1
   
   for (files in training.files){
-    cat(files," ", i , "\n")
+    #cat(files," ", i , "\n")
     matchstring <- paste0("^",files,"_" )
     train.partition <- rbind(train.partition, combined.feature[grep(matchstring, combined.feature$ID),])
     i = i + 1
@@ -300,12 +334,17 @@ reduce.partition <- function (filename, prefix, win, feature, sel) {
   i <- 1
   
   for (files in testing.files){
-    cat(files," ", i , "\n")
+    #cat(files," ", i , "\n")
     matchstring <- paste0("^",files,"_" )
     test.partition <- rbind(test.partition, combined.feature[grep(matchstring, combined.feature$ID),])
     i = i + 1  
   }
-
+  
+  # Make double digit prefix
+  if (prefix <= 9){
+    prefix = paste(0, prefix, sep="")
+  }
+  
   # Drop ID
   train.partition$ID <- NULL
   
@@ -318,16 +357,16 @@ reduce.partition <- function (filename, prefix, win, feature, sel) {
   labte <- "Reduced_Test"
   
   # Save to file
-  setwd("c:/users/ian/Desktop/partitions") # dev only
+  setwd("c:/users/ian_wa/Desktop/partitions/train") # dev only
   # setwd(paste0(portable, "Partitions"))
-  save(train.partition, file = paste0(prefix,
+  save(train.partition, file = paste(prefix,
                                       labty,
                                       labfe,
                                       labse,
                                       labtr,
                                       ".rda",
                                       sep = "_"))
-  
+  setwd("c:/users/ian_wa/Desktop/partitions/test") # dev only
   save(test.partition, file = paste(prefix,
                                     labty,
                                     labfe,
@@ -335,11 +374,44 @@ reduce.partition <- function (filename, prefix, win, feature, sel) {
                                     labte,
                                     ".rda",
                                     sep = "_"))
-  
-  result <- c(test.partition, train.partition)
-  
-  return(result)
+
 }
+
+for (win in win.type){  # Loop for all window types
+  for (feature in feature.folder){  # Loop for all feature types
+    for (sel in feature.selection){  # Loop for all selection methods
+      # Set directory to location for feature vector
+      setwd(paste0(features.dir, "/", win,"/", feature))
+      cat("Working on ", win," ",feature," ",sel,"\n")
+      # Open feature vector
+      load("Combined_features.rda")
+      
+      # Subset with selection method
+      if (sel == "Non"){
+      cat("No feature selection\n")  
+      } else {
+      # Open selection method
+      load(sel)
+      cat("Subsetting with",sel,"\n")  
+      combined.feature <- combined.feature[,cols] 
+      }
+      
+      # Set directory for partitions
+      setwd(partition.folder)
+      # Make normal partition
+      normal.partition(combined.feature, prefix, win, feature, sel)
+      prefix <- prefix + 1
+  
+      # Make increased minority class
+      increase.partition(combined.feature, prefix, win, feature, sel)
+      prefix <- prefix + 1
+      
+      # Make reduced majority class
+      reduce.partition(combined.feature, prefix, win, feature, sel)
+      prefix <- prefix + 1
+    }
+  }
+}  
 
 ######################################################################################
 

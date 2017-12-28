@@ -23,55 +23,6 @@
 
 ##################################### FUNCTIONS ######################################
 
-svm.model <- function (filename){
-  
-  setwd(train.folder)
-  load(filename)
-  cat("Training with SVM and", filename, "\n")
-  
-  # Number columns
-  N <- ncol(train.partition)
-  
-  # Training with e1071 package
-  system.time(svmModel <- svm(train.partition[,c(2:N)],  # Choose columns for features
-                              train.partition$CLASS,  # Class labels
-                              probability = TRUE))  # Calculate probabilities
-  
-  # Labels for saving results
-  label <- paste0("SVM_Model_", filename)
-  setwd(paste0(results.folder, "/Model/SVM"))
-  save(svmModel, file = label)
-
-  # Get prefix from training file name
-  pre <- substring(filename,1,1)
-  
-  # Set directory to test files
-  test.dir <- paste0(partition.folder, "/Test")
-  
-  # Get test file that matches training file
-  test.file <- list.files(test.dir, pattern = paste0(pre,"_"))
-
-  # Load test file
-  setwd(test.dir)
-  load(test.file)
-  
-  cat("Testing with SVM and", filename, "\n")
-  
-  # Number columns
-  N <- ncol(test.partition)
-  
-  # Predicting
-  system.time(svmPredict <- predict(svmModel,  # Trained model
-                                    test.partition[,c(3:N)],  # Choose columns for features
-                                    probability = TRUE))  # Calculate probabilities    
-  
-  # Labels for saving results
-  label <- paste0("SVM_Predict_", filename)
-  setwd(paste0(results.folder, "/Predict"))
-  save(svmPredict, file = label)
-  
-}
-
 neural.model <- function (filename){
   
   setwd(train.folder)
@@ -81,35 +32,66 @@ neural.model <- function (filename){
   # Number columns
   N <- ncol(train.partition)
   
+  ########################################################
   # Training with nnet package
-  system.time(neuralModel <- nnet(CLASS ~ .,
-                                  data = train.partition,
-                                  size = 10,
-                                  rang = 0.5,
-                                  decay = 0.01,
-                                  maxit = 3000,
-                                  MaxNWts = 10000))
-  
+  # neuralModel <- nnet(CLASS ~ .,
+  #                                data = train.partition,
+  #                                size = 10,
+  #                                rang = 0.5,
+  #                                decay = 0.01,
+  #                                maxit = 3000,
+  #                                MaxNWts = 10000)
+  #
+  #######################################################
   # Training with caret and nnet
+  fitControl <- trainControl(## k-fold CV
+                             method = "repeatedcv",
+                             number = 2, ## k fold
+                             repeats = 1) ## repeated x times
+  
   # Set grid for tuning parameters
-  #nnetGrid <- expand.grid(.size=c(1,2),.decay=c(0,0.1))
+  nnetGrid <- expand.grid(.size=c(1,10,20,50),.decay=seq(0,1,0.1))
   # Maximum number of neurons
-  #maxSize <- max(nnetGrid$.size)
-  # Number of weights - WRONG I THINK
-  #numWts <- 1*(maxSize * (N-1) + 1)
-  # Training
-  #system.time(neuralModel <- train(train.partition[,c(2:N)],
-  #                                 train.partition$CLASS,
-  #                                 method = "nnet",
-  #                                 tuneGrid = nnetGrid,
-  #                                 maxit = 1000,
-  #                                 MaxNWts = numWts))
+  maxSize <- max(nnetGrid$.size)
+  # Number of weights
+  numWts <- maxSize * N + maxSize + 1
+  # Training with grid tune
+  neuralModel <- train(train.partition[,c(2:N)],
+                       train.partition$CLASS,
+                       method = "nnet",
+                       trControl = fitControl,
+                       tuneGrid = nnetGrid,
+                       maxit = 100,
+                       MaxNWts = numWts,
+                       verboseIter = TRUE)
+  
+  # Training with random hyperparameter search
+  fitControl <- trainControl(## k-fold CV
+    method = "repeatedcv",
+    number = 2, ## k fold
+    repeats = 1, ## repeated x times
+    search = "random")
+  
+  neuralModel <- train(train.partition[,c(2:N)],
+                       train.partition$CLASS,
+                       method = "nnet",
+                       metric = "ROC",
+                       trControl = fitControl,
+                       tuneLength = 30,
+                       verboseIter = TRUE)
+  
+  
+  
+  
+  
+  
+  
   
   # Labels for saving results
   label <- paste0("Neural_Model_", filename)
   setwd(paste0(results.folder, "/Model/Neural"))
   save(neuralModel, file = label)
-
+  
   # Get prefix from training file name
   pre <- substring(filename,1,1)
   # Set directory to test files
@@ -137,6 +119,56 @@ neural.model <- function (filename){
   label <- paste0("Neural_Predict_", filename)
   setwd(paste0(results.folder, "/Predict/"))
   save(neuralPredict, file = label)
+}
+
+svm.model <- function (filename){
+  
+  setwd(train.folder)
+  load(filename)
+  cat("Training with SVM and", filename, "\n")
+  
+  # Number columns
+  N <- ncol(train.partition)
+  
+  # Training with e1071 package
+  system.time(svmModel <- svm(train.partition[,c(2:N)],  # Choose columns for features
+                              train.partition$CLASS,  # Class labels
+                              probability = TRUE))  # Calculate probabilities
+  
+  # Labels for saving results
+  label <- paste0("SVM_Model_", filename)
+  setwd(paste0(results.folder, "/Model/SVM"))
+  save(svmModel, file = label)
+
+  # Get prefix from training file name
+  pre <- substring(filename,1,2)
+  
+
+  
+  # Get test file that matches training file
+  test.file <- list.files(test.dir, pattern = paste0(pre,"_"))
+
+  # Set directory to test files
+  test.dir <- paste0(partition.folder, "/Test")  
+  setwd(test.dir)
+  # Load test file
+  load(test.file)
+  
+  cat("Testing with SVM and", filename, "\n")
+  
+  # Number columns
+  N <- ncol(test.partition)
+  
+  # Predicting
+  system.time(svmPredict <- predict(svmModel,  # Trained model
+                                    test.partition[,c(3:N)],  # Choose columns for features
+                                    probability = TRUE))  # Calculate probabilities    
+  
+  # Labels for saving results
+  label <- paste0("SVM_Predict_", filename)
+  setwd(paste0(results.folder, "/Predict"))
+  save(svmPredict, file = label)
+  
 }
 
 ################################## RUN MODELING ######################################
