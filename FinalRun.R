@@ -2,10 +2,10 @@ partition.folder = paste0("c:/users/ian_wa/desktop", '/Partitions') # Dev only
 features.dir <- paste0("c:/users/ian_wa/dropbox", '/Features') # Dev only
 data.dir <- "c:/users/ian_wa/dropbox"
 #features.dir <- paste0(portable, '/Features')
-win.type <- c("60-50")       #   , "60-00", "30-50", "30-00")
+win.type <- c("60-00", "30-50")      #  "60-50", "60-00", "30-50", "30-00"
 feature.folder <- c("Stat", "FFT", "Both")
 feature.selection <- c("Non", "Rfe.rda", "Lvq.rda")
-prefix = 0
+prefix = 27
 split = 0.7
 
 # Function to create normal data partition

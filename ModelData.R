@@ -21,6 +21,9 @@
 
 # This file should be called from the main code file SeizurePrediction.R
 
+results.folder = "c:/users/ian_wa/Desktop/results"
+partition.folder = "c:/users/ian_wa/Desktop/partitions"
+
 ##################################### FUNCTIONS ######################################
 
 neural.model <- function (filename){
@@ -46,11 +49,23 @@ neural.model <- function (filename){
   # Training with caret and nnet
   fitControl <- trainControl(## k-fold CV
                              method = "repeatedcv",
-                             number = 2, ## k fold
+                             number = 1, ## k fold
                              repeats = 1) ## repeated x times
   
   # Set grid for tuning parameters
-  nnetGrid <- expand.grid(.size=c(1,10,20,50),.decay=seq(0,1,0.1))
+  if (N == 21){
+    size =  c(1,10,20)
+  } else if (N == 81){
+    size =  c(20,40,80)
+  } else if (N == 225){
+    size =  c(56,112,224)
+  } else if (N == 51){
+    size =  c(12,25,50)
+  } else if (N == 305){
+    size =  c(76,152,304)
+  }
+  
+  nnetGrid <- expand.grid(.size=size, .decay=seq(0,1,0.2))
   # Maximum number of neurons
   maxSize <- max(nnetGrid$.size)
   # Number of weights
@@ -61,31 +76,26 @@ neural.model <- function (filename){
                        method = "nnet",
                        trControl = fitControl,
                        tuneGrid = nnetGrid,
-                       maxit = 100,
+                       maxit = 10,
                        MaxNWts = numWts,
                        verboseIter = TRUE)
-  
-  # Training with random hyperparameter search
-  fitControl <- trainControl(## k-fold CV
-    method = "repeatedcv",
-    number = 2, ## k fold
-    repeats = 1, ## repeated x times
-    search = "random")
-  
-  neuralModel <- train(train.partition[,c(2:N)],
-                       train.partition$CLASS,
-                       method = "nnet",
-                       metric = "ROC",
-                       trControl = fitControl,
-                       tuneLength = 30,
-                       verboseIter = TRUE)
-  
-  
-  
-  
-  
-  
-  
+  # or
+  # # Training with random hyperparameter search
+  # fitControl <- trainControl(## k-fold CV
+  #   method = "repeatedcv",
+  #   number = 2, ## k fold
+  #   repeats = 1, ## repeated x times
+  #   search = "random",
+  #   classProbs = TRUE)
+  # 
+  # neuralModel <- train(train.partition[,c(2:N)],
+  #                      train.partition$CLASS,
+  #                      method = "nnet",
+  #                      metric = "Accuracy",
+  #                      trControl = fitControl,
+  #                      tuneLength = 50,
+  #                      MaxNWts = 2000,
+  #                      verboseIter = TRUE)
   
   # Labels for saving results
   label <- paste0("Neural_Model_", filename)
@@ -93,11 +103,14 @@ neural.model <- function (filename){
   save(neuralModel, file = label)
   
   # Get prefix from training file name
-  pre <- substring(filename,1,1)
+  pre <- substring(filename,1,2)
   # Set directory to test files
   test.dir <- paste0(partition.folder, "/Test")
+  list.of.test.files <- list.files(test.dir)
+  lookup <- substr(list.of.test.files,1,2)
+  indx <- match(pre, lookup)
   # Get test file that matches training file
-  test.file <- list.files(test.dir, pattern = paste0(pre,"_"))
+  test.file <- list.of.test.files[indx]
   # Load test file
   setwd(test.dir)
   load(test.file)
@@ -179,7 +192,7 @@ list.of.files <- dir(train.folder)
 
 for (filename in list.of.files){
   neural.model(filename)
-  svm.model(filename)
+  #svm.model(filename)
 }
 
 ######################################################################################
