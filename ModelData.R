@@ -21,8 +21,8 @@
 
 # This file should be called from the main code file SeizurePrediction.R
 
-results.folder = "c:/users/ian_wa/Desktop/results"
-partition.folder = "c:/users/ian_wa/Desktop/partitions"
+results.folder = "~/Results"
+partition.folder = "~/Partitions"
 
 ##################################### FUNCTIONS ######################################
 
@@ -35,50 +35,64 @@ neural.model <- function (filename){
   # Number columns
   N <- ncol(train.partition)
   
-  ########################################################
-  # Training with nnet package
-  # neuralModel <- nnet(CLASS ~ .,
-  #                                data = train.partition,
-  #                                size = 10,
-  #                                rang = 0.5,
-  #                                decay = 0.01,
-  #                                maxit = 3000,
-  #                                MaxNWts = 10000)
-  #
-  #######################################################
-  # Training with caret and nnet
-  fitControl <- trainControl(## k-fold CV
-                             method = "repeatedcv",
-                             number = 1, ## k fold
-                             repeats = 1) ## repeated x times
-  
   # Set grid for tuning parameters
   if (N == 21){
-    size =  c(1,10,20)
+    size =  c(10)
   } else if (N == 81){
-    size =  c(20,40,80)
+    size =  c(40)
   } else if (N == 225){
-    size =  c(56,112,224)
+    size =  c(112)
   } else if (N == 51){
-    size =  c(12,25,50)
+    size =  c(25)
   } else if (N == 305){
-    size =  c(76,152,304)
+    size =  c(152)
   }
   
-  nnetGrid <- expand.grid(.size=size, .decay=seq(0,1,0.2))
-  # Maximum number of neurons
-  maxSize <- max(nnetGrid$.size)
-  # Number of weights
-  numWts <- maxSize * N + maxSize + 1
-  # Training with grid tune
-  neuralModel <- train(train.partition[,c(2:N)],
-                       train.partition$CLASS,
-                       method = "nnet",
-                       trControl = fitControl,
-                       tuneGrid = nnetGrid,
-                       maxit = 10,
-                       MaxNWts = numWts,
-                       verboseIter = TRUE)
+  
+  ########################################################
+  # Training with nnet package
+   neuralModel <- nnet(CLASS ~ .,
+                                  data = train.partition,
+                                  size = size,
+                                  rang = 0.5,
+                                  decay = 0.1,
+                                  maxit = 1000,
+                                  MaxNWts = 10000000)
+  
+  #######################################################
+  # # Training with caret and nnet
+  # fitControl <- trainControl(## k-fold CV
+  #                            method = "repeatedcv",
+  #                            number = 1, ## k fold
+  #                            repeats = 1) ## repeated x times
+  # 
+  # # Set grid for tuning parameters
+  # if (N == 21){
+  #   size =  c(1,10,20)
+  # } else if (N == 81){
+  #   size =  c(20,40,80)
+  # } else if (N == 225){
+  #   size =  c(56,112,224)
+  # } else if (N == 51){
+  #   size =  c(12,25,50)
+  # } else if (N == 305){
+  #   size =  c(76,152,304)
+  # }
+  # 
+  # nnetGrid <- expand.grid(.size=size, .decay=seq(0,1,0.2))
+  # # Maximum number of neurons
+  # maxSize <- max(nnetGrid$.size)
+  # # Number of weights
+  # numWts <- maxSize * N + maxSize + 1
+  # # Training with grid tune
+  # neuralModel <- train(train.partition[,c(2:N)],
+  #                      train.partition$CLASS,
+  #                      method = "nnet",
+  #                      trControl = fitControl,
+  #                      tuneGrid = nnetGrid,
+  #                      maxit = 10,
+  #                      MaxNWts = numWts,
+  #                      verboseIter = TRUE)
   # or
   # # Training with random hyperparameter search
   # fitControl <- trainControl(## k-fold CV
