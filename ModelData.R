@@ -20,7 +20,8 @@
 ######################################################################################
 
 # This file should be called from the main code file SeizurePrediction.R
-
+library(nnet)
+library(caret)
 results.folder = "~/Results"
 partition.folder = "~/Partitions"
 
@@ -203,6 +204,7 @@ svm.model <- function (filename){
 # Set directory
 train.folder <- paste0(partition.folder, "/Train/")
 list.of.files <- dir(train.folder)
+list.of.files <- list.of.files[46:81]
 
 for (filename in list.of.files){
   neural.model(filename)
