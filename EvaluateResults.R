@@ -37,10 +37,25 @@ for (filename in list.of.files){
   # Load prediction
   load(filename)
   
+  # For SVM predictions
   if(grepl("SVM", filename)){
     
-    # Get prefix from prediction file name
-    pre <- substring(filename,13,13)
+    # Get all digits from string
+    matches <- regmatches(filename, gregexpr("[[:digit:]]+", filename))
+    # Unlist the matches
+    matches <- as.numeric(unlist(matches))
+    # The first match is the file number
+    pre <- matches[1]
+    if (pre <= 26){
+        slice.num = 19
+    } else if (pre > 26 && pre <= 53){
+        slice.num = 10
+    } else if (pre > 53 && pre <= 80){
+        slice.num = 39
+    } else if (pre > 80){
+        slice.num = 20
+    }
+    
     # Set directory to test files
     test.dir <- paste0(partition.folder, "/Test/")
     # Get test file that matches training file
@@ -73,11 +88,27 @@ for (filename in list.of.files){
     
     # Create truth label based on the filename
     results$Truth <- factor(ifelse(grepl("inter", results$ID), "Interictal", "Preictal"))
-    
+  
+  
+  # For Neural Net predictions    
   } else{
     
-    # Get prefix from prediction file name
-    pre <- substring(filename,16,16)
+    # Get all digits from string
+    matches <- regmatches(filename, gregexpr("[[:digit:]]+", filename))
+    # Unlist the matches
+    matches <- as.numeric(unlist(matches))
+    # The first match is the file number
+    pre <- matches[1]
+    if (pre <= 26){
+      slice.num = 19
+    } else if (pre > 26 && pre <= 53){
+      slice.num = 10
+    } else if (pre > 53 && pre <= 80){
+      slice.num = 39
+    } else if (pre > 80){
+      slice.num = 20
+    }
+
     # Set directory to test files
     test.dir <- paste0(partition.folder, "/Test/")
     # Get test file that matches training file
