@@ -21,8 +21,12 @@
 
 # This file should be called from the main code file SeizurePrediction.R
 
+library(data.table)
+library(ROCR)
 # Set directory
-predict.folder <- paste0(results.folder, "/Predict/")
+results.folder <- "E:/Results"
+partition.folder <- "E:/Partitions"
+predict.folder <- paste0(results.folder, "/Predict/Neural")
 list.of.files <- dir(predict.folder)
 setwd(predict.folder)
 
@@ -32,7 +36,7 @@ summary.results <- data.frame(matrix(ncol = 8, nrow = 0))
 for (filename in list.of.files){
   
   # Console output
-  cat("Processing ", filename, "\n")
+  cat("Processing prediction", filename, "\n")
   
   # Load prediction
   load(filename)
@@ -99,6 +103,10 @@ for (filename in list.of.files){
     matches <- as.numeric(unlist(matches))
     # The first match is the file number
     pre <- matches[1]
+    
+    if (pre < 10){
+      pre = paste("0", pre, sep = "")}
+    
     if (pre <= 26){
       slice.num = 19
     } else if (pre > 26 && pre <= 53){
@@ -108,12 +116,15 @@ for (filename in list.of.files){
     } else if (pre > 80){
       slice.num = 20
     }
-
+      
+    cat("There are", slice.num, "slices", "\n")
+    
     # Set directory to test files
     test.dir <- paste0(partition.folder, "/Test/")
     # Get test file that matches training file
-    test.file <- list.files(test.dir, pattern = paste0(pre,"_"))
+    test.file <- list.files(test.dir, pattern = paste0("^", pre, "_"))
     # Load test file
+    cat("Loading test file", test.file, "\n")
     load(paste0(test.dir,test.file))
     
     # Get probabilities from prediction
@@ -188,3 +199,100 @@ save(summary.results, file = "Summary_Results.rda")
 write.csv(summary.results, "Summary_Results.csv", row.names = FALSE)
 
 summary.results
+
+######################################################
+# For summary plots
+
+file.names <- read.table(text = summary.results$Filename, sep = "_", colClasses = "character")
+summary.results <- cbind(file.names, summary.results)
+summary.results$V1 <- NULL
+summary.results$V2 <- NULL
+summary.results$V8 <- NULL
+summary.results$V9 <- NULL
+summary.results$Filename <- NULL
+colnames(summary.results) <- c("Number",
+                               "Window",
+                               "Feature",
+                               "Selection",
+                               "Sampling",
+                               "TN",
+                               "FP",
+                               "FN",
+                               "TP",
+                               "Specificity",
+                               "Sensitivity",
+                               "AUC")
+
+library(plotly)
+library(ggplot2)
+
+summary.results$Window <- as.factor(summary.results$Window)
+summary.results$Feature <- as.factor(summary.results$Feature)
+summary.results$Selection <- as.factor(summary.results$Selection)
+summary.results$Sampling <- as.factor(summary.results$Sampling)
+summary.results$Specificity <- as.numeric(summary.results$Specificity)
+summary.results$Sensitivity <- as.numeric(summary.results$Sensitivity)
+
+#Ordering
+summary.results$Feature <- factor(summary.results$Feature, levels = c("Stat", "FFT", "Both"))
+
+
+p <- ggplot(summary.results, aes(x=Window, y=Specificity, fill=Window)) + geom_boxplot()
+
+# Plot of specificity vs features and selection
+ggplot(summary.results, aes(x=Feature, y=Specificity, fill=Selection)) +
+  geom_boxplot(alpha = 0.5) +
+  geom_point(size = 3, colour = "black", shape = 21, position = position_jitterdodge())
+
+# Plot of sensitvity vs features and selection
+ggplot(summary.results, aes(x=Feature, y=Sensitivity, fill=Selection)) +
+  geom_boxplot(alpha = 0.5) +
+  geom_point(size = 3, colour = "black", shape = 21, position = position_jitterdodge())
+
+
+
+
+
+# Plot of sensitivity vs windows and Feature
+ggplot(summary.results, aes(x=Window, y=Sensitivity, fill = Feature)) +
+  geom_boxplot(alpha = 0.5) +
+  geom_point(size = 3, colour = "black", shape = 21, position = position_jitterdodge())
+
+
+###############KEEPERS#####################
+#Ordering
+summary.results$Window <- factor(summary.results$Window, levels = c("30-00", "60-50", "30-50","60-00"))
+# Plot of sensitivity vs windows
+ggplot(summary.results, aes(x=Window, y=Sensitivity, fill = Window)) +
+  geom_boxplot(alpha = 0.5) +
+  geom_point(size = 3, colour = "black", shape = 21)
+###############KEEPERS#####################
+# Plot of specificity vs features
+ggplot(summary.results, aes(x=Feature, y=Specificity, fill=Feature)) +
+  geom_boxplot(alpha = 0.5) +
+  geom_point(size = 3, colour = "black", shape = 21, position = position_jitterdodge())
+###############KEEPERS#####################
+#Ordering
+summary.results$Selection<- factor(summary.results$Selection, levels = c("Non", "Rfe", "Lvq"))
+# Plot of specificity vs selection
+ggplot(summary.results, aes(x=Selection, y=Specificity, fill=Selection)) +
+  geom_boxplot(alpha = 0.5) +
+  geom_point(size = 3, colour = "black", shape = 21, position = position_jitterdodge())
+
+
+
+
+
+
+
+
+
+######################################################
+# For AUC plots
+
+# Graphics
+roc.perf = performance(pred, measure = "tpr", x.measure = "fpr")
+plot(roc.perf)
+abline(a=0, b= 1)
+
+#####################################################
