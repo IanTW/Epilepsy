@@ -245,4 +245,9 @@ roc.perf = performance(pred, measure = "tpr", x.measure = "fpr")
 plot(roc.perf)
 abline(a=0, b= 1)
 
+################################################
 
+# Set directory for output
+setwd(results.folder)
+save(summary.results, file = "Summary_Results.rda")
+write.csv(summary.results, "Summary_Results.csv", row.names = FALSE)
