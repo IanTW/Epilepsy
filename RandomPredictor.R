@@ -21,13 +21,15 @@
 
 library(ROCR)
 # Random Lucky Predictor
-
-# Set directory to test files
-partition.folder <- "~/Epilepsy/Partitions"
+partition.folder <- "E:/Partitions"
 test.dir <- paste0(partition.folder, "/Test/")
 setwd(test.dir)
 # Get list of all test files
 list.of.files <- dir(test.dir) 
+
+# Set directory
+results.folder <- "E:/Results"
+label <- "Binomial_Random"
 
 # Make results object
 summary.results <- data.frame(matrix(ncol = 9, nrow = 0))
@@ -88,20 +90,20 @@ for (filename in list.of.files){
   }  
 
   # Bind result with test partition
-  test.partition <- cbind(test.partition, rand)
+  results <- cbind(test.partition, rand)
 
   # Add truth value based on file name
-  test.partition$Truth <- factor(ifelse(grepl("inter", test.partition$ID), "Interictal", "Preictal"))
+  results$Truth <- factor(ifelse(grepl("inter", results$ID), "Interictal", "Preictal"))
   
   # Get confusion matrix
-  confusion <- table(test.partition$Prediction, test.partition$Truth)
+  confusion <- table(results$Prediction, results$Truth)
   
   # Initialise object
   df <- c()
   # Get probabilities
-  df$predictions <- test.partition$Prob
+  df$predictions <- results$Prob
   # Get class labels
-  df$label <- ifelse(test.partition$Truth == "Preictal", 1, 0)
+  df$label <- ifelse(results$Truth == "Preictal", 1, 0)
   # Create prediction object
   pred <- prediction(df$predictions, df$label)
   # Get performance measures
@@ -112,6 +114,8 @@ for (filename in list.of.files){
   spec.score <- round(confusion[1]/(confusion[1]+confusion[2]),2)
   # Sensitivity
   sens.score <- round(confusion[4]/(confusion[3]+confusion[4]),2)
+  # S1 score
+  s1.score <- round(2*(sens.score*spec.score)/(sens.score+spec.score),2)
   
   # Compile results
   results.list <- c(filename,
@@ -122,15 +126,23 @@ for (filename in list.of.files){
                     spec.score,
                     sens.score,
                     auc.score,
-                    nrow(test.partition))
+                    s1.score)
   
   # Bind to output 
   summary.results <- rbind(summary.results, results.list, stringsAsFactors = FALSE)
+  
 }
 
 # Create column names
-x <- c("Filename", "TN", "FP", "FN", "TP", "Specificity", "Sensitivity", "AUC", "Files")
+x <- c("Filename", "TN", "FP", "FN", "TP", "Spec", "Sens", "AUC", "S1")
 colnames(summary.results) <- x
+
+# Set directory for output
+setwd(results.folder)
+file.label.rda = paste0(label, "_", "Summary_Results.rda")
+file.label.csv = paste0(label, "_", "Summary_Results.csv")
+save(summary.results, file = file.label.rda)
+write.csv(summary.results, file = file.label.csv, row.names = FALSE)
 
 # Graphics
 roc.perf = performance(pred, measure = "tpr", x.measure = "fpr")
@@ -196,20 +208,20 @@ for (filename in list.of.files){
   classes <- table(rand$Prediction)
   
   # Bind result with test partition
-  test.partition <- cbind(test.partition, rand)
+  results <- cbind(test.partition, rand)
   
   # Add truth value based on file name
-  test.partition$Truth <- factor(ifelse(grepl("inter", test.partition$ID), "Interictal", "Preictal"))
+  results$Truth <- factor(ifelse(grepl("inter", results$ID), "Interictal", "Preictal"))
   
   # Get confusion matrix
-  confusion <- table(test.partition$Prediction, test.partition$Truth)
+  confusion <- table(results$Prediction, results$Truth)
   
   # Initialise object
   df <- c()
   # Get probabilities
-  df$predictions <- test.partition$Prob
+  df$predictions <- results$Prob
   # Get class labels
-  df$label <- ifelse(test.partition$Truth == "Preictal", 1, 0)
+  df$label <- ifelse(results$Truth == "Preictal", 1, 0)
   # Create prediction object
   pred <- prediction(df$predictions, df$label)
   # Get performance measures
@@ -220,6 +232,8 @@ for (filename in list.of.files){
   spec.score <- round(confusion[1]/(confusion[1]+confusion[2]),2)
   # Sensitivity
   sens.score <- round(confusion[4]/(confusion[3]+confusion[4]),2)
+  # S1 score
+  s1.score <- round(2*(sens.score*spec.score)/(sens.score+spec.score),2)
   
   # Compile results
   results.list <- c(filename,
@@ -230,15 +244,23 @@ for (filename in list.of.files){
                     spec.score,
                     sens.score,
                     auc.score,
-                    nrow(test.partition))
+                    s1.score)
   
   # Bind to output 
   summary.results <- rbind(summary.results, results.list, stringsAsFactors = FALSE)
+  
 }
 
 # Create column names
-x <- c("Filename", "TN", "FP", "FN", "TP", "Specificity", "Sensitivity", "AUC", "Files")
+x <- c("Filename", "TN", "FP", "FN", "TP", "Spec", "Sens", "AUC", "S1")
 colnames(summary.results) <- x
+
+# Set directory for output
+setwd(results.folder)
+file.label.rda = paste0(label, "_", "Summary_Results.rda")
+file.label.csv = paste0(label, "_", "Summary_Results.csv")
+save(summary.results, file = file.label.rda)
+write.csv(summary.results, file = file.label.csv, row.names = FALSE)
 
 # Graphics
 roc.perf = performance(pred, measure = "tpr", x.measure = "fpr")

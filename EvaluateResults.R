@@ -27,11 +27,12 @@ library(ROCR)
 results.folder <- "E:/Results"
 partition.folder <- "E:/Partitions"
 predict.folder <- paste0(results.folder, "/Predict/Neural")
+label <- "Neural"
 list.of.files <- dir(predict.folder)
 setwd(predict.folder)
 
 # Make results object
-summary.results <- data.frame(matrix(ncol = 8, nrow = 0))
+summary.results <- data.frame(matrix(ncol = 9, nrow = 0))
 
 for (filename in list.of.files){
   
@@ -40,119 +41,80 @@ for (filename in list.of.files){
   
   # Load prediction
   load(filename)
+    
+  # Get all digits from string
+  matches <- regmatches(filename, gregexpr("[[:digit:]]+", filename))
+  # Unlist the matches
+  matches <- as.numeric(unlist(matches))
+  # The first match is the file number
+  pre <- matches[1]
+  
+  if (pre < 10){
+    pre = paste("0", pre, sep = "")}
+  
+  if (pre <= 26){
+    slice.num = 19
+  } else if (pre > 26 && pre <= 53){
+    slice.num = 10
+  } else if (pre > 53 && pre <= 80){
+    slice.num = 39
+  } else if (pre > 80){
+    slice.num = 20
+  }
+  
+  cat("There are", slice.num, "slices", "\n")
+  
+  # Set directory to test files
+  test.dir <- paste0(partition.folder, "/Test/")
+  # Get test file that matches training file
+  test.file <- list.files(test.dir, pattern = paste0("^", pre, "_"))
+  # Load test file
+  load(paste0(test.dir,test.file))
+  
   
   # For SVM predictions
   if(grepl("SVM", filename)){
-    
-    # Get all digits from string
-    matches <- regmatches(filename, gregexpr("[[:digit:]]+", filename))
-    # Unlist the matches
-    matches <- as.numeric(unlist(matches))
-    # The first match is the file number
-    pre <- matches[1]
-    if (pre <= 26){
-        slice.num = 19
-    } else if (pre > 26 && pre <= 53){
-        slice.num = 10
-    } else if (pre > 53 && pre <= 80){
-        slice.num = 39
-    } else if (pre > 80){
-        slice.num = 20
-    }
-    
-    # Set directory to test files
-    test.dir <- paste0(partition.folder, "/Test/")
-    # Get test file that matches training file
-    test.file <- list.files(test.dir, pattern = paste0(pre,"_"))
-    # Load test file
-    load(paste0(test.dir,test.file))
-    
+  
     # Get probabilities from prediction
     probs <- attr(svmPredict, "probabilities")
-    # Bind with test data to get original file identities
-    test.partition.prob <- cbind(probs, test.partition)
-    
-    # Remove slice number from ID
-    test.partition.prob$ID <- paste0(read.table(text = test.partition.prob$ID,
-                                                sep = ".",
-                                                as.is = TRUE)$V1,
-                                     ".mat")
-    
-    # Convert to data.table
-    test.partition.prob <- as.data.table(test.partition.prob)
-    
-    # Summarise to get total probability across all slices for each data file
-    results <- test.partition.prob[,.(PreictalProb = sum(Preictal)/slice.num,
-                                      InterictalProb = sum(Interictal)/slice.num),
-                                   by =.(ID)]
-    
-    # Create predicted label based on highest probability
-    results$Prediction <- factor(ifelse(results$PreictalProb > results$InterictalProb,
-                                        "Preictal", "Interictal"))
-    
-    # Create truth label based on the filename
-    results$Truth <- factor(ifelse(grepl("inter", results$ID), "Interictal", "Preictal"))
-  
-  
-  # For Neural Net predictions    
-  } else{
-    
-    # Get all digits from string
-    matches <- regmatches(filename, gregexpr("[[:digit:]]+", filename))
-    # Unlist the matches
-    matches <- as.numeric(unlist(matches))
-    # The first match is the file number
-    pre <- matches[1]
-    
-    if (pre < 10){
-      pre = paste("0", pre, sep = "")}
-    
-    if (pre <= 26){
-      slice.num = 19
-    } else if (pre > 26 && pre <= 53){
-      slice.num = 10
-    } else if (pre > 53 && pre <= 80){
-      slice.num = 39
-    } else if (pre > 80){
-      slice.num = 20
-    }
-      
-    cat("There are", slice.num, "slices", "\n")
-    
-    # Set directory to test files
-    test.dir <- paste0(partition.folder, "/Test/")
-    # Get test file that matches training file
-    test.file <- list.files(test.dir, pattern = paste0("^", pre, "_"))
-    # Load test file
-    cat("Loading test file", test.file, "\n")
-    load(paste0(test.dir,test.file))
+  }  else{
     
     # Get probabilities from prediction
     probs <- as.data.frame(neuralPredict)
-    # Bind with test data to get original file identities
-    test.partition.prob <- cbind(probs, test.partition)
+  }
     
-    # Remove slice number from ID
-    test.partition.prob$ID <- paste0(read.table(text = test.partition.prob$ID,
-                                                sep = ".",
-                                                as.is = TRUE)$V1, ".mat")
-    
-    # Convert to data.table
-    test.partition.prob <- as.data.table(test.partition.prob)
-    
-    # Summarise to get total probability across all slices for each data file
-    results <- test.partition.prob[,.(PreictalProb = sum(V1/slice.num)),
-                                   by =.(ID)]
-    
-    # Create predicted label based on highest probability
-    results$Prediction <- factor(ifelse(results$PreictalProb > 0.5,
-                                        "Preictal", "Interictal"))
-    
-    # Create truth label based on the filename
-    results$Truth <- factor(ifelse(grepl("inter", results$ID), "Interictal", "Preictal"))
-    
+  # Bind with test data to get original file identities
+  test.partition.prob <- cbind(probs, test.partition)
+  
+  # Remove slice number from ID
+  test.partition.prob$ID <- paste0(read.table(text = test.partition.prob$ID,
+                                              sep = ".",
+                                              as.is = TRUE)$V1,
+                                   ".mat")
+  
+  # Convert to data.table
+  test.partition.prob <- as.data.table(test.partition.prob)
+  
+  # For SVM predictions
+  if(grepl("SVM", filename)){
+  
+  # Summarise to get total probability across all slices for each data file
+  results <- test.partition.prob[,.(PreictalProb = sum(Preictal)/slice.num,
+                                    InterictalProb = sum(Interictal)/slice.num),
+                                 by =.(ID)]
+  } else {
+  # Summarise to get total probability across all slices for each data file
+  results <- test.partition.prob[,.(PreictalProb = sum(V1/slice.num)),
+                                 by =.(ID)]
   }
   
+  # Create predicted label based on highest probability
+  results$Prediction <- factor(ifelse(results$PreictalProb > results$InterictalProb,
+                                      "Preictal", "Interictal"))
+  
+  # Create truth label based on the filename
+  results$Truth <- factor(ifelse(grepl("inter", results$ID), "Interictal", "Preictal"))
+
   # Get confusion matrix
   confusion <- table(results$Prediction, results$Truth)
   
@@ -172,7 +134,8 @@ for (filename in list.of.files){
   spec.score <- round(confusion[1]/(confusion[1]+confusion[2]),2)
   # Sensitivity
   sens.score <- round(confusion[4]/(confusion[3]+confusion[4]),2)
-  
+  # S1 score
+  s1.score <- round(2*(sens.score*spec.score)/(sens.score+spec.score),2)
   
   # Compile results
   results.list <- c(filename,
@@ -182,21 +145,23 @@ for (filename in list.of.files){
                     confusion[4],
                     spec.score,
                     sens.score,
-                    auc.score)
+                    auc.score,
+                    s1.score)
   
   # Bind to output 
   summary.results <- rbind(summary.results, results.list, stringsAsFactors = FALSE)
-  
-  #rm(results.list)
+
 }
 
 # Create column names
-x <- c("Filename", "TN", "FP", "FN", "TP", "Specificity", "Sensitivity", "AUC")
+x <- c("Filename", "TN", "FP", "FN", "TP", "Spec", "Sens", "AUC", "S1")
 colnames(summary.results) <- x
 # Set directory for output
 setwd(results.folder)
-save(summary.results, file = "Summary_Results.rda")
-write.csv(summary.results, "Summary_Results.csv", row.names = FALSE)
+file.label.rda = paste0(label, "_", "Summary_Results.rda")
+file.label.csv = paste0(label, "_", "Summary_Results.csv")
+save(summary.results, file = file.label.rda)
+write.csv(summary.results, file = file.label.csv, row.names = FALSE)
 
 summary.results
 
@@ -221,7 +186,8 @@ colnames(summary.results) <- c("Number",
                                "TP",
                                "Specificity",
                                "Sensitivity",
-                               "AUC")
+                               "AUC",
+                               "S1_Score")
 
 library(plotly)
 library(ggplot2)
