@@ -23,6 +23,9 @@
 
 library(data.table)
 library(ROCR)
+library(plotly)
+library(ggplot2)
+
 # Set directory
 results.folder <- "E:/Results"
 partition.folder <- "E:/Partitions"
@@ -202,10 +205,6 @@ c$Classifier <- "SVM"
 
 summary.results <- rbind(a,b,c)
 
-
-library(plotly)
-library(ggplot2)
-
 summary.results$Window <- as.factor(summary.results$Window)
 summary.results$Feature <- as.factor(summary.results$Feature)
 summary.results$Selection <- as.factor(summary.results$Selection)
@@ -229,15 +228,16 @@ save(dat, file="Merged_Results.rda")
 dat$Classifier <- factor(dat$Classifier, levels = c("Neural", "SVM", "Random"))
 
 xax = list(title = "")
-yax <- list(range = c(0,1), title = "Sensitivity")
-yax1 <- list(range = c(0,1), title = "Specificity")
-yax2<- list(range = c(0,1), title = "S1 Score")
+xax1 =list(title = "", showticklabels = FALSE)
+yax <- list(range = c(0,1.1), title = "Sensitivity")
+yax1 <- list(range = c(0,1.1), title = "Specificity")
+yax2<- list(range = c(0,1.1), title = "S1 Score")
 
 m <- list(
   l = 130,
   r = 30,
   b = 60,
-  t = 20,
+  t = 60,
   pad = 4)
 
 p1 <- plot_ly(dat, x = ~Classifier, y = ~Sensitivity, type = "box", boxpoints = "all", jitter = 0.2,
@@ -257,15 +257,35 @@ subplot(p1,p2,p3,nrows = 3, shareY = TRUE, shareX = TRUE, margin = 0.03) %>%
 
 ###############################################
 
+# Filter out random classifier
 dat <- dat[dat$Classifier != "Random",]
+dat$Classifier <- levels(droplevels(dat$Classifier))
+dat$Classifier <- as.factor(dat$Classifier)
 
-p1 <- plot_ly(dat, x = ~Classifier, y = ~Sensitivity, color = ~Selection, type = "box") %>%
-  layout(boxmode = "group", yaxis = yax, xaxis = xax, showlegend = FALSE) 
 
-p2 <- plot_ly(dat, x = ~Classifier, y = ~Specificity,color = ~Selection, type = "box") %>%
-  layout(boxmode = "group", yaxis = yax1, xaxis = xax, showlegend = TRUE) 
 
-p3 <- plot_ly(dat, x = ~Classifier, y = ~S1_Score, color = ~Selection, type = "box") %>%
+# Rename factor levels
+dat$Selection <- revalue(dat$Selection, c("Lvq"="LVQ", "Rfe"="RFE", "Non"="None"))
+dat$Feature <- revalue(dat$Feature, c("Stat" = "Statistical",
+                                      "FFT" = "Spectral",
+                                      "Both" = "Combined"))
+dat$Window <- revalue(dat$Window, c("30-00" = "30s-0%",
+                                    "30-50" = "30s-50%",
+                                    "60-00" = "60s-0%",
+                                    "60-50" = "60s-50%"))
+#Reorder factor levels
+dat$Selection <- factor(dat$Selection, levels = c("None", "LVQ", "RFE"))
+#Reorder factor levels
+dat$Feature <- factor(dat$Feature, levels = c("Statistical", "Spectral", "Combined"))
+dat$Sampling <- factor(dat$Sampling, levels = c("Normal", "Increased", "Reduced"))
+
+p1 <- plot_ly(dat, x = ~Classifier, y = ~Sensitivity, color = ~Sampling, type = "box", boxpoints = "all", marker = list(size = 3)) %>%
+  layout(boxmode = "group", yaxis = yax, xaxis = xax1, showlegend = FALSE) 
+
+p2 <- plot_ly(dat, x = ~Classifier, y = ~Specificity,color = ~Sampling, type = "box", boxpoints = "all", marker = list(size = 3)) %>%
+  layout(boxmode = "group", yaxis = yax1, xaxis = xax1, showlegend = TRUE) 
+
+p3 <- plot_ly(dat, x = ~Classifier, y = ~S1_Score, color = ~Sampling, type = "box", boxpoints = "all", marker = list(size = 3)) %>%
   layout(boxmode = "group", yaxis = yax2, xaxis = xax, showlegend = FALSE) 
 
 subplot(p1,p2,p3,nrows = 3, shareY = TRUE, shareX = TRUE) %>% 
