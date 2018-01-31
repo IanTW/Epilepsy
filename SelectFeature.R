@@ -128,7 +128,21 @@ save(cols, file = "RFE.rda")
 
 # Plot RFE
 library(plotly)
+
+# Load stat
 df <- results$results
+
+# Load FFT
+ef <- results$results
+
+# Load both 
+ff <- results$results
+
+xax <- list(
+  title = "Features")
+yax <- list(
+  title = "Accuracy",
+  range = c(0.7,0.95))
 
 m <- df[which.max(df$Accuracy), ]
 
@@ -136,30 +150,68 @@ a <- list(
   x = m$Variables,
   y = m$Accuracy,
   text = paste0("Optimal Features = ", rownames(m)),
-  xref = "x",
-  yref = "y",
+  xref = "x1",
+  yref = "y1",
   showarrow = TRUE,
   arrowhead = 7,
-  ax = -120,
-  ay = 130
+  ax = 60,
+  ay = 60
 )
-
-ax <- list(
-  zeroline = TRUE,
-  showline = TRUE,
-  zerolinecolor = toRGB("black"),
-  zerolinewidth = 1,
-  linecolor = toRGB("black"),
-  linewidth = 1
-)
-
-plot_ly(df, x = ~Variables, y = ~Accuracy, type = 'scatter', mode = 'lines+markers') %>%
+p1 <- plot_ly(df, x = ~Variables, y = ~Accuracy, type = 'scatter', mode = 'lines+markers', name = "Statistical Features") %>%
+  layout(xaxis =xax, yaxis = yax) %>%
 add_trace(df, 
-          x = m$Variables, y=c(0.55,0.92),
+          x = m$Variables, y=c(0.8,0.94),
           hoverinfo = "text",
+          showlegend = FALSE,
           mode = "lines",
-          type = "scatter") %>%
-layout(annotations = a, showlegend=FALSE, xaxis = ax) %>%
-config(displayModeBar = F)
-  
+          type = "scatter") 
+
+n <- ef[which.max(ef$Accuracy), ]
+
+b <- list(
+  x = n$Variables,
+  y = n$Accuracy,
+  text = paste0("Optimal Features = ", rownames(n)),
+  xref = "x2",
+  yref = "y2",
+  showarrow = TRUE,
+  arrowhead = 7,
+  ax = 60,
+  ay = 60
+)
+
+p2 <- plot_ly(ef, x = ~Variables, y = ~Accuracy, type = 'scatter', mode = 'lines+markers', name = "Spectral Features") %>%
+  layout(xaxis =xax, yaxis = yax) %>%
+  add_trace(ef, 
+            x = n$Variables, y=c(0.8,0.94),
+            hoverinfo = "text",
+            showlegend = FALSE,
+            mode = "lines",
+            type = "scatter")
+
+o <- ff[which.max(ff$Accuracy), ]
+
+c <- list(
+  x = o$Variables,
+  y = o$Accuracy,
+  text = paste0("Optimal Features = ", rownames(o)),
+  xref = "x3",
+  yref = "y3",
+  showarrow = TRUE,
+  arrowhead = 7,
+  ax = 60,
+  ay = 60
+)
+
+p3 <- plot_ly(ff, x = ~Variables, y = ~Accuracy, type = 'scatter', mode = 'lines+markers', name = "Combined Features") %>%
+  add_trace(ff, 
+            x = o$Variables, y=c(0.8,0.94),
+            hoverinfo = "text",
+            showlegend = FALSE,
+            mode = "lines",
+            type = "scatter") %>%
+  layout( xaxis =xax, yaxis = yax) 
+
+subplot(p1,p2,p3,nrows = 3, shareX = TRUE, titleY = TRUE) %>% 
+  layout(showlegend = TRUE, legend = list(x = 0.7, y = 0.9))
 

@@ -170,10 +170,13 @@ summary.results
 
 file.names <- read.table(text = summary.results$Filename, sep = "_", colClasses = "character")
 summary.results <- cbind(file.names, summary.results)
-summary.results$V1 <- NULL
-summary.results$V2 <- NULL
-summary.results$V8 <- NULL
-summary.results$V9 <- NULL
+summary.results$V1 <- NULL # SVM and Neural only
+summary.results$V2 <- NULL # SVM and Neural only
+summary.results$V8 <- NULL # SVM and Neural only
+summary.results$V9 <- NULL # SVM and Neural only
+summary.results$V6 <- NULL # Random only
+summary.results$V7 <- NULL # Random only
+
 summary.results$Filename <- NULL
 colnames(summary.results) <- c("Number",
                                "Window",
@@ -189,6 +192,17 @@ colnames(summary.results) <- c("Number",
                                "AUC",
                                "S1_Score")
 
+
+a <- summary.results  # Binomial
+a$Classifier <- "Random"
+b <- summary.results  # Neural
+b$Classifier <- "ANN"
+c <- summary.results  # SVM
+c$Classifier <- "SVM"
+
+summary.results <- rbind(a,b,c)
+
+
 library(plotly)
 library(ggplot2)
 
@@ -196,8 +210,92 @@ summary.results$Window <- as.factor(summary.results$Window)
 summary.results$Feature <- as.factor(summary.results$Feature)
 summary.results$Selection <- as.factor(summary.results$Selection)
 summary.results$Sampling <- as.factor(summary.results$Sampling)
+summary.results$Classifier <- as.factor(summary.results$Classifier)
 summary.results$Specificity <- as.numeric(summary.results$Specificity)
 summary.results$Sensitivity <- as.numeric(summary.results$Sensitivity)
+summary.results$TN <- as.numeric(summary.results$TN)
+summary.results$TP <- as.numeric(summary.results$TP)
+summary.results$FN <- as.numeric(summary.results$FN)
+summary.results$FP <- as.numeric(summary.results$FP)
+summary.results$AUC <- as.numeric(summary.results$AUC)
+summary.results$S1_Score <- as.numeric(summary.results$S1_Score)
+
+dat <- summary.results 
+save(dat, file="Merged_Results.rda")
+##############################################################################################
+#BOXPLOTS CLASSIFIERS
+
+#Reorder factor levels
+dat$Classifier <- factor(dat$Classifier, levels = c("Neural", "SVM", "Random"))
+
+xax = list(title = "")
+yax <- list(range = c(0,1), title = "Sensitivity")
+yax1 <- list(range = c(0,1), title = "Specificity")
+yax2<- list(range = c(0,1), title = "S1 Score")
+
+m <- list(
+  l = 130,
+  r = 30,
+  b = 60,
+  t = 20,
+  pad = 4)
+
+p1 <- plot_ly(dat, x = ~Classifier, y = ~Sensitivity, type = "box", boxpoints = "all", jitter = 0.2,
+              pointpos = -1.8, marker = list(size = 3)) %>%
+  layout(boxmode = "group", yaxis = yax) 
+
+p2 <- plot_ly(dat, x = ~Classifier, y = ~Specificity, type = "box", boxpoints = "all", jitter = 0.2,
+              pointpos = -1.8, marker = list(size = 3)) %>%
+  layout(boxmode = "group", yaxis = yax1) 
+
+p3 <- plot_ly(dat, x = ~Classifier, y = ~S1_Score, type = "box", boxpoints = "all", jitter = 0.2,
+              pointpos = -1.8, marker = list(size = 3)) %>%
+  layout(boxmode = "group", yaxis = yax2) 
+
+subplot(p1,p2,p3,nrows = 3, shareY = TRUE, shareX = TRUE, margin = 0.03) %>% 
+  layout(showlegend = FALSE, xaxis = xax)
+
+###############################################
+
+dat <- dat[dat$Classifier != "Random",]
+
+p1 <- plot_ly(dat, x = ~Classifier, y = ~Sensitivity, color = ~Selection, type = "box") %>%
+  layout(boxmode = "group", yaxis = yax, xaxis = xax, showlegend = FALSE) 
+
+p2 <- plot_ly(dat, x = ~Classifier, y = ~Specificity,color = ~Selection, type = "box") %>%
+  layout(boxmode = "group", yaxis = yax1, xaxis = xax, showlegend = TRUE) 
+
+p3 <- plot_ly(dat, x = ~Classifier, y = ~S1_Score, color = ~Selection, type = "box") %>%
+  layout(boxmode = "group", yaxis = yax2, xaxis = xax, showlegend = FALSE) 
+
+subplot(p1,p2,p3,nrows = 3, shareY = TRUE, shareX = TRUE) %>% 
+  layout(showlegend = FALSE, xaxis = xax)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #Ordering
 summary.results$Feature <- factor(summary.results$Feature, levels = c("Stat", "FFT", "Both"))
@@ -214,8 +312,6 @@ ggplot(summary.results, aes(x=Feature, y=Specificity, fill=Selection)) +
 ggplot(summary.results, aes(x=Feature, y=Sensitivity, fill=Selection)) +
   geom_boxplot(alpha = 0.5) +
   geom_point(size = 3, colour = "black", shape = 21, position = position_jitterdodge())
-
-
 
 
 
