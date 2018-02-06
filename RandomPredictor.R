@@ -20,7 +20,8 @@
 ######################################################################################
 
 library(ROCR)
-# Random Lucky Predictor
+
+# Random Lucky Predictor - !!!Not working as intended!!!
 partition.folder <- "E:/Partitions"
 test.dir <- paste0(partition.folder, "/Test/")
 setwd(test.dir)
