@@ -291,83 +291,32 @@ p3 <- plot_ly(dat, x = ~Classifier, y = ~S1_Score, color = ~Sampling, type = "bo
 subplot(p1,p2,p3,nrows = 3, shareY = TRUE, shareX = TRUE) %>% 
   layout(showlegend = FALSE, xaxis = xax)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+######################################################################################################
 
 #Ordering
 summary.results$Feature <- factor(summary.results$Feature, levels = c("Stat", "FFT", "Both"))
 
+datsvm <- dat[dat$Classifier == "SVM",]
+datann <- dat[dat$Classifier == "Neural",]
+datann <- datann[,c(10:14)]
+names(datann)[names(datann) == 'Specificity'] <- 'Specificity2'
+names(datann)[names(datann) == 'Sensitivity'] <- 'Sensitivity2'
+names(datann)[names(datann) == 'S1_Score'] <- 'S1_Score2'
+datann$AUC <- NULL
+datann$Classifier <- NULL
 
-p <- ggplot(summary.results, aes(x=Window, y=Specificity, fill=Window)) + geom_boxplot()
+d1 <- cbind(datsvm, datann)
 
-# Plot of specificity vs features and selection
-ggplot(summary.results, aes(x=Feature, y=Specificity, fill=Selection)) +
-  geom_boxplot(alpha = 0.5) +
-  geom_point(size = 3, colour = "black", shape = 21, position = position_jitterdodge())
+#d1 <- d1[order(d1$Feature,decreasing = TRUE),]
+#d1 <- d1[order(d1$Sampling,decreasing = TRUE),]
+#d1 <- d1[order(d1$Window,decreasing = TRUE),]
+d1 <- d1[order(d1$Sampling, d1$Selection, decreasing = TRUE),]
+d1 <- d1[order(d1$Sampling, d1$Feature, decreasing = TRUE),]
 
-# Plot of sensitvity vs features and selection
-ggplot(summary.results, aes(x=Feature, y=Sensitivity, fill=Selection)) +
-  geom_boxplot(alpha = 0.5) +
-  geom_point(size = 3, colour = "black", shape = 21, position = position_jitterdodge())
+d1$Num <- c(1:108)
 
-
-
-# Plot of sensitivity vs windows and Feature
-ggplot(summary.results, aes(x=Window, y=Sensitivity, fill = Feature)) +
-  geom_boxplot(alpha = 0.5) +
-  geom_point(size = 3, colour = "black", shape = 21, position = position_jitterdodge())
-
-
-###############KEEPERS#####################
-#Ordering
-summary.results$Window <- factor(summary.results$Window, levels = c("30-00", "60-50", "30-50","60-00"))
-# Plot of sensitivity vs windows
-ggplot(summary.results, aes(x=Window, y=Sensitivity, fill = Window)) +
-  geom_boxplot(alpha = 0.5) +
-  geom_point(size = 3, colour = "black", shape = 21)
-###############KEEPERS#####################
-# Plot of specificity vs features
-ggplot(summary.results, aes(x=Feature, y=Specificity, fill=Feature)) +
-  geom_boxplot(alpha = 0.5) +
-  geom_point(size = 3, colour = "black", shape = 21, position = position_jitterdodge())
-###############KEEPERS#####################
-#Ordering
-summary.results$Selection<- factor(summary.results$Selection, levels = c("Non", "Rfe", "Lvq"))
-# Plot of specificity vs selection
-ggplot(summary.results, aes(x=Selection, y=Specificity, fill=Selection)) +
-  geom_boxplot(alpha = 0.5) +
-  geom_point(size = 3, colour = "black", shape = 21, position = position_jitterdodge())
-
-
-
-
-
-
-
-
+plot_ly(d1, x = ~Num, y = ~Sensitivity, type = 'scatter', mode = 'lines') %>%
+  add_trace(y= ~Sensitivity2, type = 'scatter', mode = 'lines') 
 
 ######################################################
 # For AUC plots
