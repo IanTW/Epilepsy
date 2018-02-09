@@ -293,9 +293,6 @@ subplot(p1,p2,p3,nrows = 3, shareY = TRUE, shareX = TRUE) %>%
 
 ######################################################################################################
 
-#Ordering
-summary.results$Feature <- factor(summary.results$Feature, levels = c("Stat", "FFT", "Both"))
-
 datsvm <- dat[dat$Classifier == "SVM",]
 datann <- dat[dat$Classifier == "Neural",]
 datann <- datann[,c(10:14)]
@@ -327,3 +324,42 @@ plot(roc.perf)
 abline(a=0, b= 1)
 
 #####################################################
+# Statistical Tests
+
+library(pastecs)
+load("Merged_Results.rda")
+
+# Hostogram to check normality
+hist <- ggplot(dat, aes(Sensitivity))+geom_histogram(aes(y=..density..))
+
+# Summary stats
+# Classifier
+by(dat$Sensitiviyy, dat$Classifier, stat.desc, basic = FALSE, norm = TRUE)
+by(dat$Specificity, dat$Classifier, stat.desc, basic = FALSE, norm = TRUE)
+by(dat$S1_Score, dat$Classifier, stat.desc, basic = FALSE, norm = TRUE)
+
+# Preprocessing methods
+by(dat$Specificity, dat$Window, stat.desc, basic = FALSE, norm = TRUE)
+by(dat$Sensitivity, dat$Window, stat.desc, basic = FALSE, norm = TRUE)
+
+# Wilcoxon Rank Sum (2 samples - suitable for comapring results of two samples)
+# Remove Random if needed
+dat <- dat[dat$Classifier != "Random",]
+newModel<-wilcox.test(Sensitivity ~ Classifier, data = dat, paired = FALSE)
+
+# Function to get effect size (See 15.5.6.)
+rFromWilcox<-function(wilcoxModel, N){
+z<- qnorm(wilcoxModel$p.value/2)
+r<- z/ sqrt(N)
+cat(wilcoxModel$data.name, "Effect Size, r = ", r)
+}
+
+# Run the function (N = total samples)
+rFromWilcox(newModel, 216)
+
+# Kruskal-Wallace (multiple samples)
+
+
+
+
+
