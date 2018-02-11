@@ -184,7 +184,7 @@ summary.results$Filename <- NULL
 colnames(summary.results) <- c("Number",
                                "Window",
                                "Feature",
-                               "Selection",
+                               "Window",
                                "Sampling",
                                "TN",
                                "FP",
@@ -207,7 +207,7 @@ summary.results <- rbind(a,b,c)
 
 summary.results$Window <- as.factor(summary.results$Window)
 summary.results$Feature <- as.factor(summary.results$Feature)
-summary.results$Selection <- as.factor(summary.results$Selection)
+summary.results$Window <- as.factor(summary.results$Window)
 summary.results$Sampling <- as.factor(summary.results$Sampling)
 summary.results$Classifier <- as.factor(summary.results$Classifier)
 summary.results$Specificity <- as.numeric(summary.results$Specificity)
@@ -265,7 +265,7 @@ dat$Classifier <- as.factor(dat$Classifier)
 
 
 # Rename factor levels
-dat$Selection <- revalue(dat$Selection, c("Lvq"="LVQ", "Rfe"="RFE", "Non"="None"))
+dat$Window <- revalue(dat$Window, c("Lvq"="LVQ", "Rfe"="RFE", "Non"="None"))
 dat$Feature <- revalue(dat$Feature, c("Stat" = "Statistical",
                                       "FFT" = "Spectral",
                                       "Both" = "Combined"))
@@ -274,7 +274,7 @@ dat$Window <- revalue(dat$Window, c("30-00" = "30s-0%",
                                     "60-00" = "60s-0%",
                                     "60-50" = "60s-50%"))
 #Reorder factor levels
-dat$Selection <- factor(dat$Selection, levels = c("None", "LVQ", "RFE"))
+dat$Window <- factor(dat$Window, levels = c("None", "LVQ", "RFE"))
 #Reorder factor levels
 dat$Feature <- factor(dat$Feature, levels = c("Statistical", "Spectral", "Combined"))
 dat$Sampling <- factor(dat$Sampling, levels = c("Normal", "Increased", "Reduced"))
@@ -307,7 +307,7 @@ d1 <- cbind(datsvm, datann)
 #d1 <- d1[order(d1$Feature,decreasing = TRUE),]
 #d1 <- d1[order(d1$Sampling,decreasing = TRUE),]
 #d1 <- d1[order(d1$Window,decreasing = TRUE),]
-d1 <- d1[order(d1$Sampling, d1$Selection, decreasing = TRUE),]
+d1 <- d1[order(d1$Sampling, d1$Window, decreasing = TRUE),]
 d1 <- d1[order(d1$Sampling, d1$Feature, decreasing = TRUE),]
 
 d1$Num <- c(1:108)
@@ -324,28 +324,26 @@ plot(roc.perf)
 abline(a=0, b= 1)
 
 #####################################################
-# Statistical Tests
+# Statistical Tests for classifier comparison
 
 library(pastecs)
+library(pgirmess)
 load("Merged_Results.rda")
 
-# Hostogram to check normality
-hist <- ggplot(dat, aes(Sensitivity))+geom_histogram(aes(y=..density..))
+# Histogram to check normality
+hist <- ggplot(dat, aes(Specificity))+geom_histogram(aes(y=..density..))
 
 # Summary stats
 # Classifier
-by(dat$Sensitiviyy, dat$Classifier, stat.desc, basic = FALSE, norm = TRUE)
+by(dat$Sensitivity, dat$Classifier, stat.desc, basic = FALSE, norm = TRUE)
 by(dat$Specificity, dat$Classifier, stat.desc, basic = FALSE, norm = TRUE)
 by(dat$S1_Score, dat$Classifier, stat.desc, basic = FALSE, norm = TRUE)
 
-# Preprocessing methods
-by(dat$Specificity, dat$Window, stat.desc, basic = FALSE, norm = TRUE)
-by(dat$Sensitivity, dat$Window, stat.desc, basic = FALSE, norm = TRUE)
-
-# Wilcoxon Rank Sum (2 samples - suitable for comapring results of two samples)
+# Wilcoxon Rank Sum (2 samples - suitable for comparing results of two samples)
 # Remove Random if needed
 dat <- dat[dat$Classifier != "Random",]
-newModel<-wilcox.test(Sensitivity ~ Classifier, data = dat, paired = FALSE)
+newModel <- wilcox.test(S1_Score ~ Classifier, data = dat, paired = FALSE)
+newModel
 
 # Function to get effect size (See 15.5.6.)
 rFromWilcox<-function(wilcoxModel, N){
@@ -357,9 +355,76 @@ cat(wilcoxModel$data.name, "Effect Size, r = ", r)
 # Run the function (N = total samples)
 rFromWilcox(newModel, 216)
 
-# Kruskal-Wallace (multiple samples)
+###########################
 
+# Kruskal-Wallis (multiple samples)
+# Reorder factors
+dat$Classifier <- factor(dat$Classifier, levels = levels(dat$Classifier)[c(2,1,3)])
 
+# Sensitivity
+kruskal.test(Sensitivity ~ Classifier, data = dat)
+# Specificity
+kruskal.test(Specificity ~ Classifier, data = dat)
+# S1 Score
+kruskal.test(S1_Score ~ Classifier, data = dat)
 
+# Create rank for each group
+dat$Ranks <- rank(dat$Classifier)
+# Mean rank
+by(dat$Ranks,dat$Classifier,mean)
 
+#Post hoc tests - Sensitivity
+#kruskalmc(Sensitivity ~ Classifier, data = dat)
+#Two-tailed version
+#kruskalmc(Sensitivity ~ Classifier, data = dat, cont='two-tailed')
 
+#Post hoc tests - Specificity
+kruskalmc(Specificity ~ Classifier, data = dat)
+#Two-tailed version
+kruskalmc(Specificity ~ Classifier, data = dat, cont='two-tailed')
+
+#Post hoc tests - S1 score
+kruskalmc(S1_Score ~ Classifier, data = dat)
+#Two-tailed version
+kruskalmc(S1_Score ~ Classifier, data = dat, cont='two-tailed')
+
+####################################################
+# Statistical Tests for processing comparison
+
+library(pastecs)
+library(pgirmess)
+load("Merged_Results.rda")
+dat <- dat[dat$Classifier != "Random",]
+
+# Kruskal-Wallis (multiple samples)
+# Check levels
+levels(dat$Selection)
+# Reorder factors
+dat$Selection <- factor(dat$Selection, levels = levels(dat$Selection)[c(2,1,3)])
+
+# Sensitivity
+kruskal.test(Sensitivity ~ Selection, data = dat)
+# Specificity
+kruskal.test(Specificity ~ Selection, data = dat)
+# S1 Score
+kruskal.test(S1_Score ~ Selection, data = dat)
+
+# Create rank for each group
+dat$Ranks <- rank(dat$Selection)
+# Mean rank
+by(dat$Ranks,dat$Selection,mean)
+
+#Post hoc tests - Sensitivity
+kruskalmc(Sensitivity ~ Selection, data = dat)
+#Two-tailed version
+kruskalmc(Sensitivity ~ Selection, data = dat, cont='two-tailed')
+
+#Post hoc tests - Specificity
+kruskalmc(Specificity ~ Selection, data = dat)
+#Two-tailed version
+kruskalmc(Specificity ~ Selection, data = dat, cont='two-tailed')
+
+#Post hoc tests - S1 score
+kruskalmc(S1_Score ~ Selection, data = dat)
+#Two-tailed version
+kruskalmc(S1_Score ~ Selection, data = dat, cont='two-tailed')
