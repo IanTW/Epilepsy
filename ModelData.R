@@ -24,14 +24,15 @@ library(nnet)
 library(caret)
 results.folder = "~/Results"
 partition.folder = "~/Partitions"
-
+logFile <- "Perf_log.txt"
 ##################################### FUNCTIONS ######################################
 
 neural.model <- function (filename){
   
   setwd(train.folder)
   load(filename)
-  cat("Training with Neural and", filename, "\n")
+  
+  cat(paste0("Started Training ", filename, " ", Sys.time()), file = logFile, append = TRUE, sep = "\n")
   
   # Number columns
   N <- ncol(train.partition)
@@ -49,7 +50,6 @@ neural.model <- function (filename){
     size =  c(152)
   }
   
-  
   ########################################################
   # Training with nnet package
    neuralModel <- nnet(CLASS ~ .,
@@ -59,6 +59,8 @@ neural.model <- function (filename){
                                   decay = 0.1,
                                   maxit = 1000,
                                   MaxNWts = 10000000)
+  
+  cat(paste0("Finished Training ", filename, " ", Sys.time()), file = logFile, append = TRUE, sep = "\n")
   
   #######################################################
   # # Training with caret and nnet
@@ -113,9 +115,9 @@ neural.model <- function (filename){
   #                      verboseIter = TRUE)
   
   # Labels for saving results
-  label <- paste0("Neural_Model_", filename)
-  setwd(paste0(results.folder, "/Model/Neural"))
-  save(neuralModel, file = label)
+  #label <- paste0("Neural_Model_", filename)
+  #setwd(paste0(results.folder, "/Model/Neural"))
+  #save(neuralModel, file = label)
   
   # Get prefix from training file name
   pre <- substring(filename,1,2)
@@ -130,9 +132,9 @@ neural.model <- function (filename){
   setwd(test.dir)
   load(test.file)
   
-  cat("Testing with Neural and", filename, "\n")
-  
-  # Number columns
+  cat(paste0("Started Testing ", filename, " ", Sys.time()), file = logFile, append = TRUE, sep = "\n")
+
+    # Number columns
   N <- ncol(test.partition)
   
   # system.time(neuralPredict <- predict(neuralModel,  # Trained model
@@ -141,12 +143,14 @@ neural.model <- function (filename){
   
   system.time(neuralPredict <- predict(neuralModel,  # Trained model
                                        test.partition[,c(3:N)],  # Choose features
-                                       type = "raw"))  # Calculate probabilities        
+                                       type = "raw"))  # Calculate probabilities   
+  
+  cat(paste0("Finished Testing ", filename, " ", Sys.time()), file = logFile, append = TRUE, sep = "\n")
   
   # Labels for saving results
-  label <- paste0("Neural_Predict_", filename)
-  setwd(paste0(results.folder, "/Predict/"))
-  save(neuralPredict, file = label)
+  #label <- paste0("Neural_Predict_", filename)
+  #setwd(paste0(results.folder, "/Predict/"))
+  #save(neuralPredict, file = label)
 }
 
 svm.model <- function (filename){
@@ -204,7 +208,6 @@ svm.model <- function (filename){
 # Set directory
 train.folder <- paste0(partition.folder, "/Train/")
 list.of.files <- dir(train.folder)
-list.of.files <- list.of.files[46:81]
 
 for (filename in list.of.files){
   neural.model(filename)

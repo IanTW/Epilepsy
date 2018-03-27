@@ -293,9 +293,6 @@ subplot(p1,p2,p3,nrows = 3, shareY = TRUE, shareX = TRUE) %>%
 
 ######################################################################################################
 
-#Ordering
-summary.results$Feature <- factor(summary.results$Feature, levels = c("Stat", "FFT", "Both"))
-
 datsvm <- dat[dat$Classifier == "SVM",]
 datann <- dat[dat$Classifier == "Neural",]
 datann <- datann[,c(10:14)]
@@ -307,17 +304,85 @@ datann$Classifier <- NULL
 
 d1 <- cbind(datsvm, datann)
 
+
+d1$Sampling <- factor(d1$Sampling, levels = c("Normal", "Increased", "Reduced"))
+
+
 #d1 <- d1[order(d1$Feature,decreasing = TRUE),]
-#d1 <- d1[order(d1$Sampling,decreasing = TRUE),]
+d1 <- d1[order(d1$Sampling,decreasing = FALSE),]
 #d1 <- d1[order(d1$Window,decreasing = TRUE),]
 d1 <- d1[order(d1$Sampling, d1$Selection, decreasing = TRUE),]
 d1 <- d1[order(d1$Sampling, d1$Feature, decreasing = TRUE),]
 
 d1$Num <- c(1:108)
+p
 
-plot_ly(d1, x = ~Num, y = ~Sensitivity, type = 'scatter', mode = 'lines') %>%
-  add_trace(y= ~Sensitivity2, type = 'scatter', mode = 'lines') 
 
+plot_ly(d1, x = ~Num, y = ~Sensitivity, type = 'scatter', name = "SVM", mode = 'lines') %>%
+  add_trace(y= ~Sensitivity2, type = 'scatter',name = "ANN", mode = 'lines') %>% 
+  add_trace(x = 36, y=c(0,1.1),
+            hoverinfo = "text",
+            showlegend = FALSE,
+            line = list(color = 'rgb(205, 12, 24)', width = 4, dash = 'dash'),
+            mode = "lines",
+            type = "scatter") %>%
+  add_trace(x = 72, y=c(0,1.1),
+            hoverinfo = "text",
+            line = list(color = 'rgb(205, 12, 24)', width = 4, dash = 'dash'),
+            showlegend = FALSE,
+            mode = "lines",
+            type = "scatter") %>%
+  add_trace(x = 12, y=c(0,1.1),
+            hoverinfo = "text",
+            line = list(color = 'rgb(205, 12, 24)', width = 1, dash = 'dot'),
+            showlegend = FALSE,
+            mode = "lines",
+            type = "scatter") %>%
+  add_trace(x = 24, y=c(0,1.1),
+            hoverinfo = "text",
+            line = list(color = 'rgb(205, 12, 24)', width = 1, dash = 'dot'),
+            showlegend = FALSE,
+            mode = "lines",
+            type = "scatter") %>%
+  add_trace(x = 48, y=c(0,1.1),
+            hoverinfo = "text",
+            line = list(color = 'rgb(205, 12, 24)', width = 1, dash = 'dot'),
+            showlegend = FALSE,
+            mode = "lines",
+            type = "scatter") %>%
+  add_trace(x = 60, y=c(0,1.1),
+            hoverinfo = "text",
+            line = list(color = 'rgb(205, 12, 24)', width = 1, dash = 'dot'),
+            showlegend = FALSE,
+            mode = "lines",
+            type = "scatter") %>%
+  add_trace(x = 84, y=c(0,1.1),
+            hoverinfo = "text",
+            line = list(color = 'rgb(205, 12, 24)', width = 1, dash = 'dot'),
+            showlegend = FALSE,
+            mode = "lines",
+            type = "scatter") %>%
+  add_trace(x = 96, y=c(0,1.1),
+            hoverinfo = "text",
+            line = list(color = 'rgb(205, 12, 24)', width = 1, dash = 'dot'),
+            showlegend = FALSE,
+            mode = "lines",
+            type = "scatter") %>%
+  
+    layout(xaxis = list(title = "Model Number"), legend = list(x=0.11,y=0.4), 
+           annotations = list(list(text = "REDUCED SAMPLING",  x = 19, y = 1.15, showarrow=FALSE), 
+                              list(text = "INCREASED MINORITY",  x = 54, y = 1.15, showarrow=FALSE),
+                              list(text = "NORMAL SAMPLING",  x = 90, y = 1.15, showarrow=FALSE),
+                              list(text = "STATISTIC",  x = 6, y = 1.05, showarrow=FALSE),
+                              list(text = "SPECTRAL",  x = 18, y = 1.05, showarrow=FALSE),
+                              list(text = "COMBINED",  x = 30, y = 1.05, showarrow=FALSE),
+                              list(text = "STATISTIC",  x = 42, y = 1.05, showarrow=FALSE),
+                              list(text = "SPECTRAL",  x = 54, y = 1.05, showarrow=FALSE),
+                              list(text = "COMBINED",  x = 66, y = 1.05, showarrow=FALSE),
+                              list(text = "STATISTIC",  x = 78, y = 1.05, showarrow=FALSE),
+                              list(text = "SPECTRAL",  x = 90, y = 1.05, showarrow=FALSE),
+                              list(text = "COMBINED",  x = 102, y = 1.05, showarrow=FALSE)
+                              ))
 ######################################################
 # For AUC plots
 
