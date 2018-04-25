@@ -158,13 +158,13 @@ a <- list(
   ay = 60
 )
 p1 <- plot_ly(df, x = ~Variables, y = ~Accuracy, type = 'scatter', mode = 'lines+markers', name = "Statistical Features") %>%
-  layout(xaxis =xax, yaxis = yax) %>%
 add_trace(df, 
-          x = m$Variables, y=c(0.8,0.94),
+          x = m$Variables, y=c(0.85,0.94),
           hoverinfo = "text",
           showlegend = FALSE,
           mode = "lines",
-          type = "scatter") 
+          type = "scatter") %>%
+layout(xaxis =xax, yaxis = yax, annotations = a) 
 
 n <- ef[which.max(ef$Accuracy), ]
 
@@ -180,10 +180,10 @@ b <- list(
   ay = 60
 )
 
-p2 <- plot_ly(ef, x = ~Variables, y = ~Accuracy, type = 'scatter', mode = 'lines+markers', name = "Spectral Features") %>%
-  layout(xaxis =xax, yaxis = yax) %>%
+p2 <- plot_ly(ef, x = ~Variables, y = ~Accuracy, type = 'scatter', mode = 'lines+markers', line = list(color = '#2ca02c'),name = "Spectral Features") %>%
+  layout(xaxis =xax, yaxis = yax, annotations =b) %>%
   add_trace(ef, 
-            x = n$Variables, y=c(0.8,0.94),
+            x = n$Variables, y=c(0.87,0.96),
             hoverinfo = "text",
             showlegend = FALSE,
             mode = "lines",
@@ -203,14 +203,14 @@ c <- list(
   ay = 60
 )
 
-p3 <- plot_ly(ff, x = ~Variables, y = ~Accuracy, type = 'scatter', mode = 'lines+markers', name = "Combined Features") %>%
+p3 <- plot_ly(ff, x = ~Variables, y = ~Accuracy, type = 'scatter', mode = 'lines+markers', line = list(color = '#9467bd'),name = "Combined Features") %>%
   add_trace(ff, 
-            x = o$Variables, y=c(0.8,0.94),
+            x = o$Variables, y=c(0.87,0.96),
             hoverinfo = "text",
             showlegend = FALSE,
             mode = "lines",
             type = "scatter") %>%
-  layout( xaxis =xax, yaxis = yax) 
+  layout( xaxis =xax, yaxis = yax, annotations = c) 
 
 subplot(p1,p2,p3,nrows = 3, shareX = TRUE, titleY = TRUE) %>% 
   layout(showlegend = TRUE, legend = list(x = 0.7, y = 0.9))
