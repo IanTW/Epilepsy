@@ -1,2 +1,2 @@
 # Epilepsy
-Dissertation Code
+This code was developed for my MSc. Data Analytics dissertation, which p
